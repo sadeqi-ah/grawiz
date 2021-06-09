@@ -1,0 +1,21 @@
+@import url("./fonts.css");
+
+:root {
+  --main-color: #42d7f8;
+}
+
+html,
+body {
+  padding: 0;
+  margin: 0;
+  font-family: "JetBrains Mono";
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+* {
+  box-sizing: border-box;
+}
