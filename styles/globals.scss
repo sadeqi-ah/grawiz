@@ -3,11 +3,18 @@
 :root {
   --main-color: #42d7f8;
 }
-
-html,
-body {
+* {
   padding: 0;
   margin: 0;
+}
+
+input {
+  outline: none;
+}
+
+html,
+body,
+input {
   font-family: "JetBrains Mono";
 }
 
