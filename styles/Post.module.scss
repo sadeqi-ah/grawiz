@@ -10,6 +10,12 @@
         border-radius: 14px;
         transition: all 200ms;
 
+        @media (max-width: 576px) {
+            & {
+                width: 90%;
+            }
+        }
+
         & > a {
             display: block;
             width: 100%;
