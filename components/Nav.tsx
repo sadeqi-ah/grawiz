@@ -2,7 +2,7 @@ import styles from "../styles/Nav.module.scss";
 
 export default function Nav() {
   return (
-    <div className={styles.container}>
+    <div className={`container ${styles.container}`}>
       <div className={styles.logo}>
         <svg
           width={41}

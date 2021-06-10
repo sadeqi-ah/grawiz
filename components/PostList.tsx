@@ -8,8 +8,11 @@ export default function PostList() {
         @media (min-width: 1400px) {
           .container {
             max-width: 1140px;
-            padding: 50px 0;
           }
+        }
+
+        .container {
+          margin: 50px 0;
         }
       `}</style>
 

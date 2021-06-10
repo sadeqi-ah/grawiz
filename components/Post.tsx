@@ -12,12 +12,7 @@ export type PostProps = {
 
 const Post: React.FC<PostProps> = ({ title, categories, url, color }) => {
   return (
-    <div
-      className={`col-lg-3 col-md-4 col-sm-6 ${styles.container}`}
-      style={{
-        maxWidth: "1140px",
-      }}
-    >
+    <div className={`col-lg-3 col-md-4 col-sm-6 ${styles.container}`}>
       <style jsx>{`
         .${styles.post}:hover {
           border: 2px solid ${color};

@@ -3,7 +3,7 @@ import styles from "../styles/Header.module.scss";
 
 function Header() {
   return (
-    <div className={styles.header}>
+    <div className={`container ${styles.header}`}>
       <h1 className={styles.title}>DS & Algorithms</h1>
 
       <p className={styles.description}>
