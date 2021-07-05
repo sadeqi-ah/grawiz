@@ -1,7 +1,7 @@
 import React from "react";
 import { IconOpt } from "..";
 
-const Search: React.FC<IconOpt> = ({
+const Folder: React.FC<IconOpt> = ({
   width,
   height,
   color,
@@ -25,4 +25,4 @@ const Search: React.FC<IconOpt> = ({
   </svg>
 );
 
-export default Search;
+export default Folder;
