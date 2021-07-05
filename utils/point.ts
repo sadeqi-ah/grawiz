@@ -1,0 +1,89 @@
+export default class Point {
+  x: number;
+  y: number;
+
+  constructor(x: number = 0, y: number = 0) {
+    this.x = x;
+    this.y = y;
+  }
+
+  static ZERO(): Point {
+    return new Point(0, 0);
+  }
+
+  static ONE(): Point {
+    return new Point(1, 1);
+  }
+
+  static CONST_ZERO = Point.ZERO();
+  static CONST_ONE = Point.ONE();
+
+  set(x: number, y: number): Point {
+    this.x = x;
+    this.y = y;
+    return this;
+  }
+
+  clear(): void {
+    this.x = 0;
+    this.y = 0;
+  }
+
+  add(vector: Point): Point {
+    this.x += vector.x;
+    this.y += vector.y;
+    return this;
+  }
+
+  sub(vector: Point): Point {
+    this.x -= vector.x;
+    this.y -= vector.y;
+    return this;
+  }
+
+  multiply(scalar: number): Point {
+    this.x *= scalar;
+    this.y *= scalar;
+    return this;
+  }
+
+  divide(scalar: number): Point {
+    this.x /= scalar;
+    this.y /= scalar;
+    return this;
+  }
+
+  normalize(): Point {
+    const mag = this.magnitude();
+    if (mag === 0) {
+      return Point.ZERO();
+    }
+    return this.divide(mag);
+  }
+
+  magnitude(): number {
+    return Math.sqrt(this.x * this.x + this.y * this.y);
+  }
+
+  squaredMagnitude(): number {
+    return this.x * this.x + this.y * this.y;
+  }
+
+  limit(max: number): Point {
+    const mSq = this.squaredMagnitude();
+    if (mSq > max * max) this.divide(Math.sqrt(mSq)).multiply(max);
+    return this;
+  }
+
+  distance(vector: Point): number {
+    return Math.sqrt((this.x - vector.x) ** 2 + (this.y - vector.y) ** 2);
+  }
+
+  angle(): number {
+    return Math.atan2(this.x, this.y);
+  }
+
+  clone(): Point {
+    return new Point(this.x, this.y);
+  }
+}
