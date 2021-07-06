@@ -37,10 +37,24 @@ const Edge = React.forwardRef<SVGLineElement, EdgeProps>(({ source, target, link
 		const psource = new Point(source.x + sourceX, source.y + sourceY)
 		const ptarget = new Point(linked ? target.x + targetX : target.x, linked ? target.y + targetY : target.y)
 
+		const midPoint = prevState ? prevState.pq : Point.middle(psource, ptarget)
+		const k = 20
+
+		const ma = -1 / m
+		const a = Math.sqrt(Math.pow(k, 2) / (Math.pow(ma, 2) + 1))
+		const b = ma * a
+
+		console.log('ps', ps)
+		console.log('pt', pt)
+		console.log('ma', ma)
+		console.log('a', a)
+		console.log('b', b)
+
 		return {
 			ps: psource,
 			pt: ptarget,
-			pq: prevState ? prevState.pq : Point.middle(psource, ptarget),
+			// pq: prevState ? prevState.pq : Point.middle(psource, ptarget),
+			pq: new Point(a, b),
 		}
 	}
 
@@ -65,15 +79,17 @@ const Edge = React.forwardRef<SVGLineElement, EdgeProps>(({ source, target, link
 		// 		strokeWidth='2'
 		// 	/>
 		// )
-
 		return (
-			<path
-				d={`M ${ps.x} ${ps.y} Q ${pq.x} ${pq.y} ${pt.x} ${pt.y}`}
-				fill='transparent'
-				markerEnd='url(#head)'
-				stroke='#343a40'
-				strokeWidth='2'
-			/>
+			<>
+				<path
+					d={`M ${ps.x} ${ps.y} Q ${pq.x} ${pq.y} ${pt.x} ${pt.y}`}
+					fill='transparent'
+					markerEnd='url(#head)'
+					stroke='#343a40'
+					strokeWidth='2'
+				/>
+				<circle cx={pq.x} cy={pq.y} fill='red' r={5} />
+			</>
 		)
 	}
 
