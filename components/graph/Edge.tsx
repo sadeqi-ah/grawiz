@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { GraphNode } from './Node'
 import Point from '../../utils/point'
 
@@ -14,59 +14,67 @@ export type EdgeProps = {
 }
 
 const Edge = React.forwardRef<SVGLineElement, EdgeProps>(({ source, target, linked }, ref) => {
-	function createEdge() {
-		const m = calcM(source, target)
+	const [{ ps, pt, pq }, setPoints] = useState<{ ps: Point; pt: Point; pq: Point }>(() => calcPoints(undefined))
 
-		let sourceX = calcX(20, Math.abs(m))
-		let sourceY = calcY(sourceX, Math.abs(m))
+	useEffect(() => {
+		setPoints(prev => calcPoints(prev))
+	}, [source, target, linked])
 
+	function calcPoints(prevState: any) {
+		const m = Point.slope(source, target)
+
+		let sourceX = m == Infinity || m == -Infinity ? 0 : calcX(20, Math.abs(m))
+		let sourceY = m == Infinity || m == -Infinity ? 20 : calcY(sourceX, Math.abs(m))
 		let targetX = sourceX
 		let targetY = sourceY
 
-		if (m == Infinity || m == -Infinity) {
-			sourceX = 0
-			sourceY = 20
-			targetX = 0
-			targetY = 20
-		}
+		if (source.x > target.x) sourceX *= -1
+		else targetX *= -1
 
-		if (source.x > target.x) {
-			sourceX *= -1
-		} else {
-			targetX *= -1
-		}
+		if (source.y > target.y) sourceY *= -1
+		else targetY *= -1
 
-		if (source.y > target.y) {
-			sourceY *= -1
-		} else {
-			targetY *= -1
-		}
+		const psource = new Point(source.x + sourceX, source.y + sourceY)
+		const ptarget = new Point(linked ? target.x + targetX : target.x, linked ? target.y + targetY : target.y)
 
-		return (
-			<line
-				ref={ref}
-				x1={source.x + sourceX}
-				y1={source.y + sourceY}
-				x2={linked ? target.x + targetX : target.x}
-				y2={linked ? target.y + targetY : target.y}
-				markerEnd='url(#head)'
-				stroke='#343a40'
-				strokeWidth='2'
-			/>
-		)
+		return {
+			ps: psource,
+			pt: ptarget,
+			pq: prevState ? prevState.pq : Point.middle(psource, ptarget),
+		}
 	}
 
 	function calcX(r: number, m: number) {
 		return Math.sqrt(Math.pow(r, 2) / (Math.pow(m, 2) + 1))
 	}
 
-	function calcM(s: Point, t: Point) {
-		const m = (t.y - s.y) / (t.x - s.x)
-		return isNaN(m) ? 0 : m
-	}
-
 	function calcY(x: number, m: number) {
 		return x * m
+	}
+
+	function createEdge() {
+		// return (
+		// 	<line
+		// 		ref={ref}
+		// 		x1={ps.x}
+		// 		y1={ps.y}
+		// 		x2={pt.x}
+		// 		y2={pt.y}
+		// 		markerEnd='url(#head)'
+		// 		stroke='#343a40'
+		// 		strokeWidth='2'
+		// 	/>
+		// )
+
+		return (
+			<path
+				d={`M ${ps.x} ${ps.y} Q ${pq.x} ${pq.y} ${pt.x} ${pt.y}`}
+				fill='transparent'
+				markerEnd='url(#head)'
+				stroke='#343a40'
+				strokeWidth='2'
+			/>
+		)
 	}
 
 	return createEdge()
