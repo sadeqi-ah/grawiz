@@ -19,9 +19,9 @@ const Node = React.forwardRef<SVGCircleElement, GraphNode>(({ color, label, posi
 	const [{ x, y }, setState] = useState(() => ({ x: 0, y: 0 }))
 
 	const bind = useDrag(
-		({ down, offset: [mx, my] }) => {
-			if (onDrag && id) onDrag(new Point(mx, my), id)
-			setState({ x: mx, y: my })
+		({ down, offset: [_x, _y] }) => {
+			if (onDrag && id) onDrag(new Point(_x, _y), id)
+			setState({ x: _x, y: _y })
 		},
 		{ useTouch: true, enabled: draggable }
 	)
