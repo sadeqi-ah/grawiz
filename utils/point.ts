@@ -38,9 +38,11 @@ export default class Point {
 		this.y = 0
 	}
 
-	add(vector: Point): Point {
-		this.x += vector.x
-		this.y += vector.y
+	add(vector: Point | undefined): Point {
+		if (vector) {
+			this.x += vector.x
+			this.y += vector.y
+		}
 		return this
 	}
 
