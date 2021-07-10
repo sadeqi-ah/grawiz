@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from 'react'
+import React, { useRef } from 'react'
 
 import styles from '../../styles/GraphEditor.module.scss'
 
@@ -8,6 +8,7 @@ import Point from '../../utils/point'
 import { useGraphEditor } from '../../hooks/useGraphEditor'
 
 import dynamic from 'next/dynamic'
+import EdgeToolbox from '../EdgeToolbox'
 
 const Edges = dynamic(() => import('./Edges'), { ssr: false })
 
@@ -38,7 +39,7 @@ export default function GraphEditor() {
 		}
 	}
 
-	const handlerNodeDrag = (translate: Point, id: string) => {
+	const handleNodeDrag = (translate: Point, id: string) => {
 		dispatch({ type: 'SET_NODE_TRANSLATE', payload: { nodeId: id, translate } })
 	}
 
@@ -76,7 +77,7 @@ export default function GraphEditor() {
 							key={node.id}
 							draggable={state.draggable}
 							id={node.id}
-							onDrag={handlerNodeDrag}
+							onDrag={handleNodeDrag}
 							label={node.label}
 							color={node.color}
 							position={node.position}
@@ -85,6 +86,7 @@ export default function GraphEditor() {
 				</svg>
 			</div>
 			<Menu />
+			<EdgeToolbox />
 		</div>
 	)
 }
