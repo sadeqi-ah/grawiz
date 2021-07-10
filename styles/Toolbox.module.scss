@@ -1,0 +1,111 @@
+.container {
+    position: absolute;
+    top: 200px;
+    left: 200px;
+    border: solid 2px #f5f5f5;
+    border-radius: 20px;
+    background-color: #fff;
+    padding-bottom: 2px;
+
+    .row {
+        width: 100%;
+        display: flex;
+        padding: 10px 20px;
+        justify-content: space-between;
+        align-items: center;
+
+        .group {
+            display: flex;
+            margin: 5px;
+        }
+    }
+
+    .radioButton {
+        display: flex;
+    }
+
+    .input {
+        display: flex;
+        align-items: center;
+        padding: 8px 0;
+
+        label {
+            color: #9699a5;
+            margin-right: 6px;
+            white-space: nowrap;
+        }
+
+        input {
+            display: block;
+            width: 100% !important;
+            border-radius: 100px;
+            border: 0;
+            background-color: #f5f5f5;
+            border: 2px solid #f5f5f5;
+            transition: all 200ms;
+            padding: 5px 20px;
+
+            &::placeholder {
+                color: #a0a2ab;
+                transition: all 200ms;
+            }
+
+            &:hover {
+                background-color: #fafafa;
+                border: 2px solid #e3e4e5;
+            }
+
+            &:focus {
+                background-color: #fff;
+                border: 2px solid #42d7f8;
+                color: #1b1f23;
+                &::placeholder {
+                    color: #42d7f8;
+                }
+            }
+        }
+    }
+
+    .button {
+        display: flex;
+        margin: 1px;
+        position: relative;
+        fill: #9699a5;
+        transition: 200ms;
+        cursor: pointer;
+        width: 34px;
+        height: 34px;
+        justify-content: center;
+        align-items: center;
+
+        &:hover,
+        &.active {
+            fill: #42d7f8;
+        }
+
+        &::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            border-radius: 100%;
+            transition: 300ms;
+            transform: scale(0);
+        }
+
+        &:hover::after,
+        &.active::after {
+            background-color: #42d7f821;
+            transform: scale(1);
+        }
+    }
+
+    .line {
+        width: 60%;
+        height: 1px;
+        background-color: #f5f5f5;
+        margin: auto;
+    }
+}
