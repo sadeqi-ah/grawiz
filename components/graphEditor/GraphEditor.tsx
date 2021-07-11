@@ -9,10 +9,9 @@ import { useGraphEditor } from '../../hooks/useGraphEditor'
 
 import dynamic from 'next/dynamic'
 import EdgeToolbox from '../EdgeToolbox'
+import { COLORS } from '../../constants'
 
 const Edges = dynamic(() => import('./Edges'), { ssr: false })
-
-const nodeColors = ['#42D7F8', '#F45890', '#B15EFF', '#6FCF97']
 
 export default function GraphEditor() {
 	const { state, dispatch } = useGraphEditor()
@@ -44,7 +43,7 @@ export default function GraphEditor() {
 	}
 
 	const getRandomColor = (): string => {
-		return nodeColors[Math.floor(Math.random() * nodeColors.length)]
+		return COLORS[Math.floor(Math.random() * COLORS.length)]
 	}
 
 	const createNewLable = (): number => {

@@ -1,4 +1,5 @@
 import React from 'react'
+import { COLORS } from '../constants'
 import Toolbox from './toolbox'
 
 const NodeToolbox = () => {
@@ -6,10 +7,7 @@ const NodeToolbox = () => {
 		<Toolbox width={246}>
 			<Toolbox.Row>
 				<Toolbox.Group>
-					<Toolbox.ColorPicker
-						colors={['#F45890', '#B15DFF', '#42D7F8', '#6FCF97', '#232323', '#FF921E']}
-						active={'#F45890'}
-					/>
+					<Toolbox.ColorPicker colors={COLORS} active={'#F45890'} />
 				</Toolbox.Group>
 			</Toolbox.Row>
 			<Toolbox.Line />
