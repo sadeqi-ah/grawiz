@@ -1,9 +1,11 @@
 import React from 'react'
-import Toolbox from './toolbox'
+import Toolbox, { ToolboxProps } from './toolbox'
 
-const EdgeToolbox = () => {
+export type EdgeToolboxProps = Omit<ToolboxProps, 'width'>
+
+const EdgeToolbox: React.FC<EdgeToolboxProps> = ({ position, show }) => {
 	return (
-		<Toolbox width={240}>
+		<Toolbox width={240} position={position} show={show}>
 			<Toolbox.Row>
 				<Toolbox.Group>
 					<Toolbox.Button type='check-box' icon={'ArrowLeft'} active={false} />

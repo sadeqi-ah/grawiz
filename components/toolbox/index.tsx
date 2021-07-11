@@ -1,5 +1,6 @@
 import React from 'react'
 import styles from '../../styles/Toolbox.module.scss'
+import Point from '../../utils/point'
 import Button, { ButtonProps } from './Button'
 import ColorPicker, { ColorPickerProps } from './ColorPicker'
 import Input, { InputProps } from './Input'
@@ -13,12 +14,18 @@ interface IToolboxComposition {
 	ColorPicker: React.FC<ColorPickerProps>
 }
 
-const Toolbox: React.FC<{ width: number }> & IToolboxComposition = ({ children, width }) => {
-	return (
-		<div className={styles.container} style={{ width }}>
+export type ToolboxProps = {
+	width: number
+	position: Point
+	show: boolean
+}
+
+const Toolbox: React.FC<ToolboxProps> & IToolboxComposition = ({ children, width, position, show }) => {
+	return show ? (
+		<div className={styles.container} style={{ width, top: position.y, left: position.x }}>
 			{children}
 		</div>
-	)
+	) : null
 }
 Toolbox.Button = Button
 Toolbox.Input = Input

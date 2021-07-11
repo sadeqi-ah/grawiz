@@ -1,10 +1,12 @@
 import React from 'react'
 import { COLORS } from '../constants'
-import Toolbox from './toolbox'
+import Toolbox, { ToolboxProps } from './toolbox'
 
-const NodeToolbox = () => {
+export type NodeToolboxProps = Omit<ToolboxProps, 'width'>
+
+const NodeToolbox: React.FC<NodeToolboxProps> = ({ position, show }) => {
 	return (
-		<Toolbox width={246}>
+		<Toolbox width={246} position={position} show={show}>
 			<Toolbox.Row>
 				<Toolbox.Group>
 					<Toolbox.ColorPicker colors={COLORS} active={'#F45890'} />
