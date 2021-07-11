@@ -34,7 +34,7 @@
 
             &:hover,
             &.active {
-                fill: #42d7f8;
+                fill: var(--main-color);
             }
 
             &::after {
@@ -52,7 +52,7 @@
 
             &:hover::after,
             &.active::after {
-                background-color: #42d7f821;
+                background-color: var(--main-color-with-alpha);
                 transform: scale(1);
             }
         }

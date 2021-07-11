@@ -51,16 +51,16 @@
             }
 
             &:hover {
-                background-color: #fafafa;
+                background-color: var(--gray-l1-color);
                 border: 2px solid #e3e4e5;
             }
 
             &:focus {
                 background-color: #fff;
-                border: 2px solid #42d7f8;
+                border: 2px solid var(--main-color);
                 color: #1b1f23;
                 &::placeholder {
-                    color: #42d7f8;
+                    color: var(--main-color);
                 }
             }
         }
@@ -80,7 +80,7 @@
 
         &:hover,
         &.active {
-            fill: #42d7f8;
+            fill: var(--main-color);
         }
 
         &::after {
@@ -97,7 +97,7 @@
 
         &:hover::after,
         &.active::after {
-            background-color: #42d7f821;
+            background-color: var(--main-color-with-alpha);
             transform: scale(1);
         }
     }
