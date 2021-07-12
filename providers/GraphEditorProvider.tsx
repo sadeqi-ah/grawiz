@@ -11,6 +11,12 @@ type GraphEditorProps = {
 	edges: GraphEdge[]
 	previewEdge: Partial<GraphEdge>
 	draggable: boolean
+	selectedItems: (GraphEdge | GraphNode)[]
+	selectionArea: {
+		point: Point
+		width: number
+		height: number
+	}
 }
 
 export type ActionType =
@@ -21,6 +27,7 @@ export type ActionType =
 	| 'CLEAR_PREVIEW_EDGE'
 	| 'SET_NODE_TRANSLATE'
 	| 'ADD_EDGE'
+	| 'SET_SELECTED_AREA'
 
 const defultValue: GraphEditorProps = {
 	activeTool: 'select',
@@ -28,6 +35,12 @@ const defultValue: GraphEditorProps = {
 	edges: [],
 	previewEdge: {},
 	draggable: true,
+	selectedItems: [],
+	selectionArea: {
+		point: Point.ZERO(),
+		width: 0,
+		height: 0,
+	},
 }
 
 export const GraphEditorContext = createContext<GraphEditorProps>(defultValue)
@@ -56,6 +69,8 @@ function reducer(state: GraphEditorProps, action: Action<ActionType, any>): Grap
 			return { ...state, previewEdge: {} }
 		case 'ADD_EDGE':
 			return { ...state, edges: [...state.edges, payload.newEdge] }
+		case 'SET_SELECTED_AREA':
+			return { ...state, selectionArea: { ...state.selectionArea, ...payload } }
 		case 'CLEAR':
 			return defultValue
 		default:

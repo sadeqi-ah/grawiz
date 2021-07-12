@@ -10,14 +10,34 @@ import { useGraphEditor } from '../../hooks/useGraphEditor'
 import dynamic from 'next/dynamic'
 import EdgeToolbox from '../EdgeToolbox'
 import { COLORS } from '../../constants'
+import { useDrag } from 'react-use-gesture'
 
 const Edges = dynamic(() => import('./Edges'), { ssr: false })
 
 export default function GraphEditor() {
 	const { state, dispatch } = useGraphEditor()
 
-	const svgRef = useRef<SVGSVGElement>(null)
 	const nodeIdRef = useRef<number>(0)
+
+	const bind = useDrag(
+		({ event, xy: [x, y], movement: [mx, my], first, last }) => {
+			if (event.target instanceof SVGSVGElement) {
+				if (first) {
+					dispatch({ type: 'SET_SELECTED_AREA', payload: { point: new Point(x, y) } })
+				} else if (last) {
+					dispatch({ type: 'SET_SELECTED_AREA', payload: { point: Point.ZERO(), width: 0, height: 0 } })
+				} else {
+					const width = Math.abs(mx)
+					const height = Math.abs(my)
+					const point = state.selectionArea.point
+					if (mx < 0) point.x = x
+					if (my < 0) point.y = y
+					dispatch({ type: 'SET_SELECTED_AREA', payload: { point, width, height } })
+				}
+			}
+		},
+		{ useTouch: true }
+	)
 
 	const onClick = (e: React.MouseEvent<SVGSVGElement, MouseEvent>) => {
 		if (state.activeTool == 'add-node') {
@@ -54,7 +74,7 @@ export default function GraphEditor() {
 	return (
 		<div className={styles.container}>
 			<div className={styles.board}>
-				<svg ref={svgRef} onClick={onClick}>
+				<svg {...bind()} onClick={onClick}>
 					<defs>
 						<marker
 							id='arrow'
@@ -82,10 +102,19 @@ export default function GraphEditor() {
 							position={node.position}
 						/>
 					))}
+
+					<rect
+						x={state.selectionArea.point.x}
+						y={state.selectionArea.point.y}
+						width={state.selectionArea.width}
+						height={state.selectionArea.height}
+						fill={`#42A1F810`}
+						stroke={'#42A1F8'}
+					/>
 				</svg>
 			</div>
 			<Menu />
-			<EdgeToolbox />
+			{/* <EdgeToolbox /> */}
 		</div>
 	)
 }
