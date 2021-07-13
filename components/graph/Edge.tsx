@@ -1,10 +1,14 @@
 import React from 'react'
 import { GraphNode } from './Node'
 import Point from '../../utils/point'
+import { NODE_RADIUS } from '../../constants'
+
+export type EdgeType = 'straight' | 'curve' | 'reverse-curve'
 
 export type GraphEdge = {
 	source: GraphNode
 	target: GraphNode
+	type: EdgeType
 }
 
 export type EdgeProps = {
@@ -12,59 +16,62 @@ export type EdgeProps = {
 	source: Point
 	target: Point
 	direction?: 'none' | 'start' | 'end' | 'both'
-	type?: 'straight' | 'curve' | 'upward-curve' | 'downward-curve'
+	type?: EdgeType
+}
+
+export function calcEdgePosition(
+	source: Point,
+	target: Point,
+	type: EdgeType = 'straight',
+	linked: boolean = true
+): {
+	first: Point
+	last: Point
+	control?: Point
+} {
+	const m = Point.slope(source, target)
+
+	const spd = calc(NODE_RADIUS, Math.abs(m))
+	const tpd = spd.clone()
+
+	// normalize
+	if (source.x > target.x) spd.symmetryX()
+	else tpd.symmetryX()
+
+	if (source.y > target.y) spd.symmetryY()
+	else tpd.symmetryY()
+
+	const first = source.clone().add(spd)
+	const last = linked ? target.clone().add(tpd) : target
+
+	if (type === 'straight')
+		return {
+			first,
+			last,
+		}
+
+	const k = (first.distance(last) * 20) / 100
+	const cpd = calc(k, -1 / m)
+
+	if (type === 'reverse-curve') cpd.symmetry()
+
+	return {
+		first,
+		last,
+		control: Point.middle(first, last).add(cpd),
+	}
+}
+
+function calc(k: number, m: number) {
+	const dx = m == Infinity || m == -Infinity ? 0 : Math.sqrt(Math.pow(k, 2) / (Math.pow(m, 2) + 1))
+	const dy = m == Infinity || m == -Infinity ? k : m * dx
+	return new Point(dx, dy)
 }
 
 const Edge = React.forwardRef<SVGLineElement, EdgeProps>(
-	({ source, target, linked, direction = 'none', type = 'straight' }, ref) => {
-		function calcPoints() {
-			const m = Point.slope(source, target)
-
-			let sourceX = m == Infinity || m == -Infinity ? 0 : calcX(20, Math.abs(m))
-			let sourceY = m == Infinity || m == -Infinity ? 20 : calcY(sourceX, Math.abs(m))
-			let targetX = sourceX
-			let targetY = sourceY
-
-			if (source.x > target.x) sourceX *= -1
-			else targetX *= -1
-
-			if (source.y > target.y) sourceY *= -1
-			else targetY *= -1
-
-			const psource = new Point(source.x + sourceX, source.y + sourceY)
-			const ptarget = new Point(linked ? target.x + targetX : target.x, linked ? target.y + targetY : target.y)
-
-			return {
-				ps: psource,
-				pt: ptarget,
-			}
-		}
-
-		function calcX(r: number, m: number) {
-			return Math.sqrt(Math.pow(r, 2) / (Math.pow(m, 2) + 1))
-		}
-
-		function calcY(x: number, m: number) {
-			return x * m
-		}
-
-		function findQ(ps: Point, pt: Point) {
-			const m = -1 / Point.slope(source, target)
-
-			const midPoint = Point.middle(ps, pt)
-			const k = (ps.distance(pt) * 20) / 100
-
-			const a = m == Infinity || m == -Infinity ? 0 : Math.sqrt(Math.pow(k, 2) / (Math.pow(m, 2) + 1))
-			let b = m == Infinity || m == -Infinity ? k : m * a
-
-			if (type === 'upward-curve') b = -1 * Math.abs(b)
-			else if (type === 'downward-curve') b = Math.abs(b)
-
-			return new Point(midPoint.x + a, midPoint.y + b)
-		}
-
+	({ source, target, linked, direction = 'none', type = 'curve' }, ref) => {
 		function createEdge() {
-			const { ps, pt } = calcPoints()
+			const { first, last, control } = calcEdgePosition(source, target, type, linked)
 
 			const markerProps = {
 				...(direction === 'end' && { markerEnd: 'url(#arrow)' }),
@@ -76,10 +83,10 @@ const Edge = React.forwardRef<SVGLineElement, EdgeProps>(
 				return (
 					<line
 						ref={ref}
-						x1={ps.x}
-						y1={ps.y}
-						x2={pt.x}
-						y2={pt.y}
+						x1={first.x}
+						y1={first.y}
+						x2={last.x}
+						y2={last.y}
 						{...markerProps}
 						stroke='#343a40'
 						strokeWidth='2'
@@ -87,11 +94,9 @@ const Edge = React.forwardRef<SVGLineElement, EdgeProps>(
 				)
 			}
 
-			const pq = findQ(ps, pt)
-
 			return (
 				<path
-					d={`M ${ps.x} ${ps.y} Q ${pq.x} ${pq.y} ${pt.x} ${pt.y}`}
+					d={`M ${first.x} ${first.y} Q ${control?.x} ${control?.y} ${last.x} ${last.y}`}
 					fill='transparent'
 					{...markerProps}
 					stroke='#343a40'

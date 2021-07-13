@@ -4,23 +4,31 @@ import styles from '../../styles/GraphEditor.module.scss'
 
 import { animated } from 'react-spring'
 import { useDrag } from 'react-use-gesture'
+import { useGraphEditor } from '../../hooks/useGraphEditor'
 
 export type GraphNode = {
+	label: string
 	position: Point
 	translate?: Point
-	id?: string
-	label?: string
-	color?: string
-	draggable?: boolean
-	onDrag?: (translate: Point, id: string) => void
+	color: string
 }
 
-const Node = React.forwardRef<SVGCircleElement, GraphNode>(({ color, label, position, id, onDrag, draggable }, ref) => {
+export type NodeProps = {
+	draggable?: boolean
+	onDrag?: (translate: Point, id: string) => void
+} & GraphNode
+
+const Node = React.forwardRef<SVGCircleElement, NodeProps>(({ color, label, position, onDrag, draggable }, ref) => {
 	const [{ x, y }, setState] = useState(() => ({ x: 0, y: 0 }))
+	const { dispatch, getNodeByLabel } = useGraphEditor()
 
 	const bind = useDrag(
-		({ down, offset: [_x, _y] }) => {
-			if (onDrag && id) onDrag(new Point(_x, _y), id)
+		({ offset: [_x, _y], tap }) => {
+			if (tap) {
+				const node = getNodeByLabel(label)
+				if (node) dispatch({ type: 'ADD_SELECTED_ITEM', payload: node })
+			}
+			if (onDrag && label) onDrag(new Point(_x, _y), label)
 			setState({ x: _x, y: _y })
 		},
 		{ useTouch: true, enabled: draggable }
@@ -39,7 +47,7 @@ const Node = React.forwardRef<SVGCircleElement, GraphNode>(({ color, label, posi
 				{label}
 			</text>
 			<circle
-				id={id}
+				id={label}
 				className={styles.node}
 				r='20'
 				cx={position.x}

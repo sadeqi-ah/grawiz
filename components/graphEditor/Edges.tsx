@@ -5,14 +5,14 @@ import { useDrag } from 'react-use-gesture'
 import { useGraphEditor } from '../../hooks/useGraphEditor'
 
 const Edges: React.FC = () => {
-	const { state, dispatch, getNodeById, getNodeByPosition } = useGraphEditor()
+	const { state, dispatch, getNodeByLabel, getNodeByPosition } = useGraphEditor()
 
 	const onDragStart = (event: React.PointerEvent<Element> | PointerEvent) => {
 		if (state.activeTool == 'add-edge' && event.target instanceof SVGCircleElement)
 			dispatch({
 				type: 'SET_PREVIEW_EDGE',
 				payload: {
-					source: getNodeById(event.target.id),
+					source: getNodeByLabel(event.target.id),
 				},
 			})
 	}
@@ -24,14 +24,17 @@ const Edges: React.FC = () => {
 			dispatch({
 				type: 'SET_PREVIEW_EDGE',
 				payload: {
-					target: target && target.id != state.previewEdge.source.id ? target : { position: new Point(x, y) },
+					target:
+						target && target.label != state.previewEdge.source.label
+							? target
+							: { position: new Point(x, y) },
 				},
 			})
 		}
 	}
 
 	const onDragEnd = () => {
-		if (state.previewEdge.target?.id) {
+		if (state.previewEdge.target?.label) {
 			dispatch({
 				type: 'ADD_EDGE',
 				payload: { newEdge: { source: state.previewEdge.source, target: state.previewEdge.target } },
@@ -55,13 +58,13 @@ const Edges: React.FC = () => {
 				<Edge
 					source={state.previewEdge.source.position.clone().add(state.previewEdge.source.translate)}
 					target={state.previewEdge.target.position.clone().add(state.previewEdge.target.translate)}
-					linked={Boolean(state.previewEdge.target.id)}
+					linked={Boolean(state.previewEdge.target.label)}
 				/>
 			)}
 
 			{state.edges.map(edge => (
 				<Edge
-					key={`edge_${edge.source.id}${edge.target.id}`}
+					key={`edge_${edge.source.label}${edge.target.label}`}
 					source={edge.source.position.clone().add(edge.source.translate)}
 					target={edge.target.position.clone().add(edge.target.translate)}
 					linked={true}
