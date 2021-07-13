@@ -64,6 +64,22 @@ export default class Point {
 		return this
 	}
 
+	symmetry(): Point {
+		this.x *= -1
+		this.y *= -1
+		return this
+	}
+
+	symmetryX(): Point {
+		this.x *= -1
+		return this
+	}
+
+	symmetryY(): Point {
+		this.y *= -1
+		return this
+	}
+
 	normalize(): Point {
 		const mag = this.magnitude()
 		if (mag === 0) {
