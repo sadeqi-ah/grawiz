@@ -11,6 +11,7 @@ import dynamic from 'next/dynamic'
 import EdgeToolbox from '../EdgeToolbox'
 import { COLORS } from '../../constants'
 import { useDrag } from 'react-use-gesture'
+import SelectedItems from './SelectedItems'
 
 const Edges = dynamic(() => import('./Edges'), { ssr: false })
 
@@ -19,27 +20,43 @@ export default function GraphEditor() {
 
 	const nodeIdRef = useRef<number>(0)
 
+	const onDragStart = (xy: number[]) => {
+		dispatch({ type: 'CLEAR_SELECTED_ITEMS' })
+		if (state.activeTool === 'select') {
+			const [x, y] = xy
+			dispatch({ type: 'SET_SELECTED_AREA', payload: { point: new Point(x, y) } })
+		}
+	}
+
+	const onDragEnd = () => {
+		if (state.activeTool === 'select')
+			dispatch({ type: 'SET_SELECTED_AREA', payload: { point: Point.ZERO(), width: 0, height: 0 } })
+	}
+
+	const onDrag = (xy: number[], movement: number[]) => {
+		if (state.activeTool === 'select') {
+			const [x, y] = xy
+			const [mx, my] = movement
+
+			const point = state.selectionArea.point
+			if (mx < 0) point.x = x
+			if (my < 0) point.y = y
+			dispatch({ type: 'SET_SELECTED_AREA', payload: { point, width: Math.abs(mx), height: Math.abs(my) } })
+		}
+	}
+
 	const bind = useDrag(
-		({ event, xy: [x, y], movement: [mx, my], first, last }) => {
+		({ event, xy, movement, first, last }) => {
 			if (event.target instanceof SVGSVGElement) {
-				if (first) {
-					dispatch({ type: 'SET_SELECTED_AREA', payload: { point: new Point(x, y) } })
-				} else if (last) {
-					dispatch({ type: 'SET_SELECTED_AREA', payload: { point: Point.ZERO(), width: 0, height: 0 } })
-				} else {
-					const width = Math.abs(mx)
-					const height = Math.abs(my)
-					const point = state.selectionArea.point
-					if (mx < 0) point.x = x
-					if (my < 0) point.y = y
-					dispatch({ type: 'SET_SELECTED_AREA', payload: { point, width, height } })
-				}
+				if (first) onDragStart(xy)
+				else if (last) onDragEnd()
+				else onDrag(xy, movement)
 			}
 		},
 		{ useTouch: true }
 	)
 
-	const onClick = (e: React.MouseEvent<SVGSVGElement, MouseEvent>) => {
+	const handleClick = (e: React.MouseEvent<SVGSVGElement, MouseEvent>) => {
 		if (state.activeTool == 'add-node') {
 			const label = String(createNewLable())
 
@@ -58,8 +75,8 @@ export default function GraphEditor() {
 		}
 	}
 
-	const handleNodeDrag = (translate: Point, id: string) => {
-		dispatch({ type: 'SET_NODE_TRANSLATE', payload: { nodeId: id, translate } })
+	const handleNodeDrag = (translate: Point, lable: string) => {
+		dispatch({ type: 'SET_NODE_TRANSLATE', payload: { nodeLable: lable, translate } })
 	}
 
 	const getRandomColor = (): string => {
@@ -74,7 +91,7 @@ export default function GraphEditor() {
 	return (
 		<div className={styles.container}>
 			<div className={styles.board}>
-				<svg {...bind()} onClick={onClick}>
+				<svg {...bind()} onClick={handleClick}>
 					<defs>
 						<marker
 							id='arrow'
@@ -93,11 +110,10 @@ export default function GraphEditor() {
 
 					{state.nodes.map(node => (
 						<Node
-							key={node.id}
-							draggable={state.draggable}
-							id={node.id}
-							onDrag={handleNodeDrag}
+							key={node.label}
 							label={node.label}
+							draggable={state.draggable}
+							onDrag={handleNodeDrag}
 							color={node.color}
 							position={node.position}
 						/>
@@ -111,6 +127,7 @@ export default function GraphEditor() {
 						fill={`#42A1F810`}
 						stroke={'#42A1F8'}
 					/>
+					<SelectedItems />
 				</svg>
 			</div>
 			<Menu />
