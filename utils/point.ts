@@ -24,9 +24,6 @@ export default class Point {
 		return isNaN(m) ? 0 : m
 	}
 
-	static CONST_ZERO = Point.ZERO()
-	static CONST_ONE = Point.ONE()
-
 	set(x: number, y: number): Point {
 		this.x = x
 		this.y = y
