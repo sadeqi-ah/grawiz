@@ -1,5 +1,5 @@
 import React from 'react'
-import { GraphEditorProvider } from '../../providers/GraphEditorProvider'
+import { GraphEditorProvider } from '@providers/GraphEditorProvider'
 import GraphEditorComponent from './GraphEditor'
 
 const GraphEditor = () => {

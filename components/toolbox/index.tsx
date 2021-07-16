@@ -1,6 +1,6 @@
 import React from 'react'
-import styles from '../../styles/Toolbox.module.scss'
-import Point from '../../utils/point'
+import styles from '@styles/Toolbox.module.scss'
+import Point from '@utils/point'
 import Button, { ButtonProps } from './Button'
 import ColorPicker, { ColorPickerProps } from './ColorPicker'
 import Input, { InputProps } from './Input'

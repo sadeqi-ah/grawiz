@@ -1,8 +1,9 @@
 import React from 'react'
-import { NODE_RADIUS } from '../../constants'
-import { useGraphEditor } from '../../hooks/useGraphEditor'
-import { calcEdgePosition, GraphEdge } from '../graph/Edge'
-import { GraphNode } from './../graph/Node'
+import { NODE_RADIUS } from '@constants'
+import { useGraphEditor } from '@hooks/useGraphEditor'
+import { calcEdgePosition, GraphEdge } from '@components/graph/Edge'
+import { GraphNode } from '@components/graph/Node'
+
 const SelectedItems = () => {
 	const { state } = useGraphEditor()
 

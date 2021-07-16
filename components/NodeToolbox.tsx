@@ -1,5 +1,5 @@
 import React from 'react'
-import { COLORS } from '../constants'
+import { COLORS } from '@constants'
 import Toolbox, { ToolboxProps } from './toolbox'
 
 export type NodeToolboxProps = Omit<ToolboxProps, 'width'>

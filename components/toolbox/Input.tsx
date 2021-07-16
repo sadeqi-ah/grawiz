@@ -1,5 +1,5 @@
 import React, { ChangeEvent, useEffect, useState } from 'react'
-import styles from '../../styles/Toolbox.module.scss'
+import styles from '@styles/Toolbox.module.scss'
 
 export type InputProps = {
 	label: string

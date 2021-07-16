@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
-import I from '../../icons'
-import styles from '../../styles/Toolbox.module.scss'
-import classNames from '../../utils/classNames'
+import I from '@icons'
+import styles from '@styles/Toolbox.module.scss'
+import classNames from '@utils/classNames'
 
 export type ButtonProps = {
 	active: boolean | string

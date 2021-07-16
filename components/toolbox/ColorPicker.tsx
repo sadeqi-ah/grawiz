@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import styles from '../../styles/Toolbox.module.scss'
+import styles from '@styles/Toolbox.module.scss'
 
 export type ColorPickerProps = {
 	colors: string[]
