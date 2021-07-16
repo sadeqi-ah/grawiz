@@ -1,7 +1,6 @@
-import React from 'react'
-import styles from '../../styles/GraphEditor.module.scss'
-import I from '../../icons'
-import { useGraphEditor } from '../../hooks/useGraphEditor'
+import React, { memo } from 'react'
+import styles from '@styles/GraphEditor.module.scss'
+import I from '@icons'
 
 const menuItems: { name: Tool; icon: string }[] = [
 	{
@@ -25,23 +24,19 @@ const menuItems: { name: Tool; icon: string }[] = [
 
 export type Tool = 'select' | 'add-node' | 'add-edge' | 'clear'
 
-// type MenuProps = {
-// 	active: Tool
-// 	onUpdate: (active: Tool) => void
-// }
+export type MenuProps = {
+	active: Tool
+	onUpdate: (active: Tool) => void
+}
 
-const Menu: React.FC = () => {
-	const { state, dispatch } = useGraphEditor()
-
+const Menu: React.FC<MenuProps> = ({ active, onUpdate }) => {
 	return (
 		<ul className={styles.menu}>
 			{menuItems.map(item => (
 				<li
 					key={item.name}
-					className={state.activeTool == item.name ? styles.active : ''}
-					onClick={() => {
-						dispatch({ type: 'SELECT_TOOL', payload: { toolName: item.name } })
-					}}
+					className={active == item.name ? styles.active : ''}
+					onClick={() => onUpdate(item.name)}
 				>
 					<I name={item.icon} width={32} height={32} />
 				</li>
@@ -50,4 +45,4 @@ const Menu: React.FC = () => {
 	)
 }
 
-export default Menu
+export default memo(Menu)

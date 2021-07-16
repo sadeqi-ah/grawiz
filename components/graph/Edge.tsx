@@ -1,7 +1,8 @@
-import React from 'react'
+import React, { memo } from 'react'
 import { GraphNode } from './Node'
-import Point from '../../utils/point'
-import { NODE_RADIUS } from '../../constants'
+import Point from '@utils/point'
+import { NODE_RADIUS } from '@constants'
+import isEqual from 'lodash/isEqual'
 
 export type EdgeType = 'straight' | 'curve' | 'reverse-curve'
 
@@ -19,22 +20,23 @@ export type EdgeProps = {
 	type?: EdgeType
 }
 
+export type EdgePosition = {
+	first: Point
+	last: Point
+	control?: Point
+}
+
 export function calcEdgePosition(
 	source: Point,
 	target: Point,
 	type: EdgeType = 'straight',
 	linked: boolean = true
-): {
-	first: Point
-	last: Point
-	control?: Point
-} {
+): EdgePosition {
 	const m = Point.slope(source, target)
 
 	const spd = calc(NODE_RADIUS, Math.abs(m))
 	const tpd = spd.clone()
 
-	// normalize
 	if (source.x > target.x) spd.symmetryX()
 	else tpd.symmetryX()
 
@@ -109,4 +111,5 @@ const Edge = React.forwardRef<SVGLineElement, EdgeProps>(
 	}
 )
 
-export default Edge
+Edge.displayName = 'Edge'
+export default memo(Edge, isEqual)
