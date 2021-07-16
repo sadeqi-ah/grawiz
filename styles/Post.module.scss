@@ -6,7 +6,7 @@
         width: 250px;
         height: 110px;
         margin: 15px 0;
-        border: 2px solid #f5f5f5;
+        border: 2px solid var(--gray-l2-color);
         border-radius: 14px;
         transition: all 200ms;
 
@@ -35,8 +35,8 @@
 
         .category {
             display: flex;
-            color: #a0a2ab;
-            fill: #a0a2ab;
+            color: var(--gray-l4-color);
+            fill: var(--gray-l4-color);
             transition: all 200ms;
             font-weight: 500;
             ul {
