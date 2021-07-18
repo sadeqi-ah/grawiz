@@ -1,10 +1,12 @@
 import { COLORS, NODE_RADIUS } from '@constants'
-import { between, equation } from '@utils/helper'
 import { calcEdgePosition, GraphEdge } from '@components/graph/Edge'
 import { Action } from '@providers/types'
 import { GraphEditorProps } from '@providers/GraphEditorProvider'
 import { GraphNode } from '@components/graph/Node'
-import Point from '@utils/point'
+import Point from '@utils/shape/point'
+import Quadbezier from '@utils/shape/quadbezier'
+import Rectangle from '@utils/shape/rectangle'
+import Line from '@utils/shape/line'
 
 export type ActionType =
 	| 'ADD_NEW_NODE'
@@ -138,23 +140,28 @@ function setSelectedItem(
 		const { first, last, control } = calcEdgePosition(
 			edge.source.position.clone().add(edge.source.translate),
 			edge.target.position.clone().add(edge.target.translate),
-			'curve'
+			edge.type
 		)
 
-		const slope = Point.slope(first, last)
-
-		const y1 = equation(slope, first, { x: selectionArea.point.x }, [first.y, last.y])
-		const x1 = equation(slope, first, { y: selectionArea.point.y }, [first.x, last.x])
-
-		const y2 = equation(slope, first, { x: selectionArea.point.x + selectionArea.width }, [first.y, last.y])
-		const x2 = equation(slope, first, { y: selectionArea.point.y + selectionArea.height }, [first.x, last.x])
-
-		return (
-			between(y1, selectionArea.point.y + selectionArea.height, selectionArea.point.y) ||
-			between(y2, selectionArea.point.y + selectionArea.height, selectionArea.point.y) ||
-			between(x1, selectionArea.point.x + selectionArea.width, selectionArea.point.x) ||
-			between(x2, selectionArea.point.x + selectionArea.width, selectionArea.point.x)
+		const rect = new Rectangle(
+			new Point(
+				Math.min(selectionArea.point.x, selectionArea.point.x + selectionArea.width),
+				Math.min(selectionArea.point.y, selectionArea.point.y + selectionArea.height)
+			),
+			new Point(
+				Math.max(selectionArea.point.x, selectionArea.point.x + selectionArea.width),
+				Math.max(selectionArea.point.y, selectionArea.point.y + selectionArea.height)
+			)
 		)
+
+		if (control) {
+			console.log(control)
+			const q = new Quadbezier(first, control, last)
+			return q.intersectionWithRect(rect)
+		}
+
+		const line = new Line(first, last)
+		return line.intersectionWithRect(rect)
 	})
 
 	return [...nodes, ...edges]
