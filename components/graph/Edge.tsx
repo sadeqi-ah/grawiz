@@ -1,6 +1,6 @@
 import React, { memo } from 'react'
 import { GraphNode } from './Node'
-import Point from '@utils/point'
+import Point from '@utils/shape/point'
 import { NODE_RADIUS } from '@constants'
 import isEqual from 'lodash/isEqual'
 
@@ -71,7 +71,7 @@ function calc(k: number, m: number) {
 }
 
 const Edge = React.forwardRef<SVGLineElement, EdgeProps>(
-	({ source, target, linked, direction = 'none', type = 'curve' }, ref) => {
+	({ source, target, linked, direction = 'none', type = 'straight' }, ref) => {
 		function createEdge() {
 			const { first, last, control } = calcEdgePosition(source, target, type, linked)
 

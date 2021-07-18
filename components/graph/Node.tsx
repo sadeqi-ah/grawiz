@@ -1,5 +1,5 @@
 import React, { useState, memo } from 'react'
-import Point from '@utils/point'
+import Point from '@utils/shape/point'
 import styles from '@styles/GraphEditor.module.scss'
 import { animated } from 'react-spring'
 import { useDrag } from 'react-use-gesture'
