@@ -155,7 +155,6 @@ function setSelectedItem(
 		)
 
 		if (control) {
-			console.log(control)
 			const q = new Quadbezier(first, control, last)
 			return q.intersectionWithRect(rect)
 		}

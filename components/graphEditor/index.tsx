@@ -64,7 +64,9 @@ export default function GraphEditor() {
 		if (state.previewEdge.target?.label) {
 			dispatch({
 				type: 'ADD_EDGE',
-				payload: { newEdge: { source: state.previewEdge.source, target: state.previewEdge.target } },
+				payload: {
+					newEdge: { source: state.previewEdge.source, target: state.previewEdge.target },
+				},
 			})
 		}
 		dispatch({ type: 'CLEAR_PREVIEW_EDGE' })

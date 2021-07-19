@@ -3,6 +3,7 @@ import { NODE_RADIUS } from '@constants'
 import { useGraphEditor } from '@hooks/useGraphEditor'
 import { calcEdgePosition, GraphEdge } from '@components/graph/Edge'
 import { GraphNode } from '@components/graph/Node'
+import Quadbezier from '@utils/shape/quadbezier'
 
 const SelectedItems = () => {
 	const { state } = useGraphEditor()
@@ -28,16 +29,20 @@ const SelectedItems = () => {
 					edge.target.position.clone().add(edge.target.translate),
 					edge.type
 				)
+
 				minX = Math.min(edgePos.first.x, edgePos.last.x, minX)
 				maxX = Math.max(edgePos.first.x, edgePos.last.x, maxX)
 				minY = Math.min(edgePos.first.y, edgePos.last.y, minY)
 				maxY = Math.max(edgePos.first.y, edgePos.last.y, maxY)
 
 				if (edgePos.control) {
-					minX = Math.min(edgePos.control.x, minX)
-					maxX = Math.max(edgePos.control.x, maxX)
-					minY = Math.min(edgePos.control.y, minY)
-					maxY = Math.max(edgePos.control.y, maxY)
+					const q = new Quadbezier(edgePos.first, edgePos.control, edgePos.last)
+					const bbox = q.bbox()
+
+					minX = Math.min(bbox.minPoint.x, minX)
+					maxX = Math.max(bbox.maxPoint.x, maxX)
+					minY = Math.min(bbox.minPoint.y, minY)
+					maxY = Math.max(bbox.maxPoint.y, maxY)
 				}
 			}
 		})
