@@ -24,6 +24,13 @@ export default class Point {
 		return isNaN(m) ? 0 : m
 	}
 
+	static min(p1: Point, p2: Point): Point {
+		return new Point(Math.min(p1.x, p2.x), Math.min(p1.y, p2.y))
+	}
+
+	static max(p1: Point, p2: Point): Point {
+		return new Point(Math.max(p1.x, p2.x), Math.max(p1.y, p2.y))
+	}
 	set(x: number, y: number): Point {
 		this.x = x
 		this.y = y
@@ -49,15 +56,31 @@ export default class Point {
 		return this
 	}
 
-	multiply(scalar: number): Point {
-		this.x *= scalar
-		this.y *= scalar
+	clamp(min: number, max: number) {
+		this.x = Math.max(min, Math.min(this.x, max))
+		this.y = Math.max(min, Math.min(this.y, max))
 		return this
 	}
 
-	divide(scalar: number): Point {
-		this.x /= scalar
-		this.y /= scalar
+	multiply(scalar: number | Point): Point {
+		if (scalar instanceof Point) {
+			this.x *= scalar.x
+			this.y *= scalar.y
+		} else {
+			this.x *= scalar
+			this.y *= scalar
+		}
+		return this
+	}
+
+	divide(scalar: number | Point): Point {
+		if (scalar instanceof Point) {
+			this.x /= scalar.x
+			this.y /= scalar.y
+		} else {
+			this.x /= scalar
+			this.y /= scalar
+		}
 		return this
 	}
 
