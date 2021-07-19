@@ -1,7 +1,7 @@
 import { useContext, useCallback } from 'react'
 import { NODE_RADIUS } from '@constants'
 import { GraphEditorContext, GraphEditorDispatchContext } from '@providers/GraphEditorProvider'
-import Point from '@utils/point'
+import Point from '@utils/shape/point'
 
 export function useGraphEditor() {
 	const state = useContext(GraphEditorContext)
@@ -11,13 +11,15 @@ export function useGraphEditor() {
 
 	const getNodeByPosition = useCallback(
 		(position: Point) =>
-			state.nodes.find(
-				node =>
-					node.position.x - NODE_RADIUS <= position.x &&
-					node.position.x + NODE_RADIUS >= position.x &&
-					node.position.y + NODE_RADIUS >= position.y &&
-					node.position.y - NODE_RADIUS <= position.y
-			),
+			state.nodes.find(node => {
+				const nodePos = node.position.clone().add(node.translate)
+				return (
+					nodePos.x - NODE_RADIUS <= position.x &&
+					nodePos.x + NODE_RADIUS >= position.x &&
+					nodePos.y + NODE_RADIUS >= position.y &&
+					nodePos.y - NODE_RADIUS <= position.y
+				)
+			}),
 		[state.nodes]
 	)
 

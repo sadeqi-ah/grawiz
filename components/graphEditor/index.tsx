@@ -1,12 +1,12 @@
 import React, { useCallback } from 'react'
 import Menu, { Tool } from './Menu'
-import Node from '@components/graph/Node'
-import Edge from '@components/graph/Edge'
+import Node, { GraphNode } from '@components/graph/Node'
+import Edge, { GraphEdge } from '@components/graph/Edge'
 import Point from '@utils/shape/point'
 import { useGraphEditor } from '@hooks/useGraphEditor'
 import { useDrag } from 'react-use-gesture'
 import SelectedItems from './SelectedItems'
-// import EdgeToolbox from '@components/EdgeToolbox'
+import EdgeToolbox from '@components/EdgeToolbox'
 
 import styles from '@styles/GraphEditor.module.scss'
 
@@ -61,7 +61,7 @@ export default function GraphEditor() {
 	}
 
 	const finishDrawingEdge = () => {
-		if (state.previewEdge.target?.label) {
+		if (state.previewEdge.target?.label !== undefined) {
 			dispatch({
 				type: 'ADD_EDGE',
 				payload: {
@@ -144,7 +144,7 @@ export default function GraphEditor() {
 						<Edge
 							source={state.previewEdge.source.position.clone().add(state.previewEdge.source.translate)}
 							target={state.previewEdge.target.position.clone().add(state.previewEdge.target.translate)}
-							linked={Boolean(state.previewEdge.target.label)}
+							linked={state.previewEdge.target.label !== undefined}
 						/>
 					)}
 
@@ -181,7 +181,13 @@ export default function GraphEditor() {
 				</svg>
 			</div>
 			<Menu active={state.activeTool} onUpdate={handleMenu} />
-			{/* <EdgeToolbox /> */}
+			<EdgeToolbox
+				edge={
+					state.selectedItems.length === 1 && !state.selectedItems[0].hasOwnProperty('color')
+						? (state.selectedItems[0] as GraphEdge)
+						: undefined
+				}
+			/>
 		</div>
 	)
 }
