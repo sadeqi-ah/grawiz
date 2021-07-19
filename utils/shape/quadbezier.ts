@@ -66,6 +66,28 @@ export default class Quadbezier {
 		)
 	}
 
+	bbox() {
+		let mi = Point.min(this.first, this.last)
+		let ma = Point.max(this.first, this.last)
+
+		if (this.control.x < mi.x || this.control.x > ma.x || this.control.y < mi.y || this.control.y > ma.y) {
+			const t = this.first
+				.clone()
+				.sub(this.control)
+				.divide(this.first.clone().sub(this.control.clone().multiply(2)).add(this.last))
+				.clamp(0, 1)
+			const s = Point.ONE().sub(t)
+			const qt0 = s.clone().multiply(s).multiply(this.first)
+			const qt1 = new Point(2, 2).multiply(s).multiply(t).multiply(this.control)
+			const qt2 = t.clone().multiply(t).multiply(this.last)
+			const q = qt0.clone().add(qt1).add(qt2)
+			mi = Point.min(mi, q)
+			ma = Point.max(ma, q)
+		}
+
+		return new Rectangle(mi, ma)
+	}
+
 	clone(): Quadbezier {
 		return new Quadbezier(this.first.clone(), this.control.clone(), this.last.clone())
 	}
