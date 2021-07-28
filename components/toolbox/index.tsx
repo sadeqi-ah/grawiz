@@ -1,11 +1,13 @@
-import React from 'react'
+import React, { memo, NamedExoticComponent } from 'react'
 import styles from '@styles/Toolbox.module.scss'
 import Point from '@utils/shape/point'
 import Button, { ButtonProps } from './Button'
 import ColorPicker, { ColorPickerProps } from './ColorPicker'
 import Input, { InputProps } from './Input'
+import { useTransition, animated } from 'react-spring'
+import isEqual from 'lodash/isEqual'
 
-interface IToolboxComposition {
+interface IToolboxComposition extends NamedExoticComponent<ToolboxProps> {
 	Button: React.FC<ButtonProps>
 	Row: React.FC
 	Group: React.FC
@@ -16,17 +18,38 @@ interface IToolboxComposition {
 
 export type ToolboxProps = {
 	width: number
-	position: Point
-	show: boolean
+	height: number
+	position?: Point
+	children?: React.ReactNode
 }
 
-const Toolbox: React.FC<ToolboxProps> & IToolboxComposition = ({ children, width, position, show }) => {
-	return show ? (
-		<div className={styles.container} style={{ width, top: position.y, left: position.x }}>
-			{children}
-		</div>
-	) : null
-}
+const Toolbox = memo(({ children, width, height, position }) => {
+	const transitions = useTransition(position, {
+		from: { scale: 0, opacity: 0 },
+		enter: { scale: 1, opacity: 1 },
+		leave: { scale: 0, opacity: 0 },
+		config: { tension: 120, mass: 1, friction: 14, velocity: 0, precision: 0.01 },
+	})
+
+	return transitions(
+		(style, pos) =>
+			pos && (
+				<animated.div
+					className={styles.container}
+					style={{
+						width,
+						height,
+						top: pos.y,
+						left: pos.x,
+						...style,
+					}}
+				>
+					{children}
+				</animated.div>
+			)
+	)
+}, isEqual) as IToolboxComposition
+
 Toolbox.Button = Button
 Toolbox.Input = Input
 Toolbox.ColorPicker = ColorPicker
