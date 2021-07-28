@@ -2,7 +2,7 @@ import React, { createContext, useReducer } from 'react'
 import { GraphEdge } from '@components/graph/Edge'
 import { Tool } from '@components/graphEditor/Menu'
 import { GraphNode } from '@components/graph/Node'
-import Point from '@utils/point'
+import Point from '@utils/shape/point'
 import { Action } from './types'
 import reducer, { ActionType, defultValue } from './reducer/graphEditorReducer'
 
@@ -18,7 +18,7 @@ export type GraphEditorProps = {
 		width: number
 		height: number
 	}
-	lastLabel: number
+	lastNodeId: number
 }
 
 export const GraphEditorContext = createContext<GraphEditorProps>(defultValue)
