@@ -3,21 +3,28 @@ import { GraphNode } from './Node'
 import Point from '@utils/shape/point'
 import { NODE_RADIUS } from '@constants'
 import isEqual from 'lodash/isEqual'
+import Quadbezier from '@utils/shape/quadbezier'
+import Line from '@utils/shape/line'
 
 export type EdgeType = 'straight' | 'curve' | 'reverse-curve'
+export type EdgeDirection = 'none' | 'start' | 'end' | 'both'
 
 export type GraphEdge = {
+	id: string
 	source: GraphNode
 	target: GraphNode
 	type: EdgeType
+	direction: EdgeDirection
+	weight?: number
 }
 
 export type EdgeProps = {
 	linked: boolean
 	source: Point
 	target: Point
-	direction?: 'none' | 'start' | 'end' | 'both'
+	direction?: EdgeDirection
 	type?: EdgeType
+	weight?: number
 }
 
 export type EdgePosition = {
@@ -70,40 +77,57 @@ function calc(k: number, m: number) {
 	return new Point(dx, dy)
 }
 
+function calcWeightPosition(first: Point, last: Point, control?: Point) {
+	const line = new Line(first, last)
+	const k = 20
+	if (control) {
+		const q = new Quadbezier(first, control, last)
+		return line.getPointByDistOnBisector(k, q.getPoint(0.5))
+	}
+	return line.getPointByDistOnBisector(k, line.middle())
+}
+
 const Edge = React.forwardRef<SVGLineElement, EdgeProps>(
-	({ source, target, linked, direction = 'none', type = 'straight' }, ref) => {
+	({ source, target, linked, weight, direction = 'none', type = 'straight' }, ref) => {
 		function createEdge() {
 			const { first, last, control } = calcEdgePosition(source, target, type, linked)
+			const weightPos = calcWeightPosition(first, last, control)
 
 			const markerProps = {
-				...(direction === 'end' && { markerEnd: 'url(#arrow)' }),
-				...(direction === 'start' && { markerStart: 'url(#arrow)' }),
-				...(direction === 'both' && { markerStart: 'url(#arrow)', markerEnd: 'url(#arrow)' }),
-			}
-
-			if (type === 'straight') {
-				return (
-					<line
-						ref={ref}
-						x1={first.x}
-						y1={first.y}
-						x2={last.x}
-						y2={last.y}
-						{...markerProps}
-						stroke='#343a40'
-						strokeWidth='2'
-					/>
-				)
+				...(direction === 'end' && { markerEnd: 'url(#arrow_right)' }),
+				...(direction === 'start' && { markerStart: 'url(#arrow_left)' }),
+				...(direction === 'both' && { markerStart: 'url(#arrow_left)', markerEnd: 'url(#arrow_right)' }),
 			}
 
 			return (
-				<path
-					d={`M ${first.x} ${first.y} Q ${control?.x} ${control?.y} ${last.x} ${last.y}`}
-					fill='transparent'
-					{...markerProps}
-					stroke='#343a40'
-					strokeWidth='2'
-				/>
+				<>
+					{type === 'straight' ? (
+						<line
+							ref={ref}
+							x1={first.x}
+							y1={first.y}
+							x2={last.x}
+							y2={last.y}
+							{...markerProps}
+							stroke='#343a40'
+							strokeWidth='2'
+						/>
+					) : (
+						<path
+							d={`M ${first.x} ${first.y} Q ${control?.x} ${control?.y} ${last.x} ${last.y}`}
+							fill='transparent'
+							{...markerProps}
+							stroke='#343a40'
+							strokeWidth='2'
+						/>
+					)}
+
+					{weight && (
+						<text x={weightPos.x} y={weightPos.y} dominantBaseline='middle' textAnchor='middle' fill='#000'>
+							{weight}
+						</text>
+					)}
+				</>
 			)
 		}
 
