@@ -35,22 +35,26 @@ export default class Quadbezier {
 		)
 
 		for (const t of roots) {
-			if (!between(t, 0, 1)) continue
-
-			const p4 = this.control.clone().sub(this.first).multiply(t).add(this.first)
-			const p5 = this.last.clone().sub(this.control).multiply(t).add(this.control)
-			const p6 = p5.clone().sub(p4).multiply(t).add(p4)
+			const p = this.getPoint(t)
+			if (!p) continue
 
 			if (
-				(line.first.x === line.last.x && between(p6.y, miny, maxy)) ||
-				(line.first.y === line.last.y && between(p6.x, minx, maxx)) ||
-				(between(p6.x, minx, maxx) && between(p6.y, miny, maxy))
+				(line.first.x === line.last.x && between(p.y, miny, maxy)) ||
+				(line.first.y === line.last.y && between(p.x, minx, maxx)) ||
+				(between(p.x, minx, maxx) && between(p.y, miny, maxy))
 			) {
 				return true
 			}
 		}
 
 		return false
+	}
+
+	getPoint(t: number) {
+		if (!between(t, 0, 1)) return undefined
+		const p0 = this.control.clone().sub(this.first).multiply(t).add(this.first)
+		const p1 = this.last.clone().sub(this.control).multiply(t).add(this.control)
+		return p1.clone().sub(p0).multiply(t).add(p0)
 	}
 
 	intersectionWithRect(rect: Rectangle): boolean {
