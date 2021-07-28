@@ -24,6 +24,20 @@ export default class Line {
 		return isNaN(m) ? 0 : m
 	}
 
+	getPointByDistOnBisector(dist: number, base: Point = Point.ZERO()): Point {
+		return Line.getPointByDistWithSlope(dist, -1 / this.slope(), base)
+	}
+
+	getPointByDist(dist: number, base: Point = Point.ZERO()): Point {
+		return Line.getPointByDistWithSlope(dist, this.slope(), base)
+	}
+
+	static getPointByDistWithSlope(dist: number, m: number, base: Point) {
+		const a = m == Infinity || m == -Infinity ? 0 : Math.sqrt((dist * dist) / (1 + m * m))
+		const b = m == Infinity || m == -Infinity ? dist : m * a
+		return new Point(a, b).add(base)
+	}
+
 	intersectionWithLine(line: Line) {
 		const det =
 			(this.last.x - this.first.x) * (line.last.y - line.first.y) -
