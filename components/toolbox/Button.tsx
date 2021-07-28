@@ -4,26 +4,50 @@ import styles from '@styles/Toolbox.module.scss'
 import classNames from '@utils/classNames'
 
 export type ButtonProps = {
-	active: boolean | string
+	id?: string
+	active?: string | string[]
 	icon?: string
 	options?: { id: string; icon: string }[]
 	type: 'check-box' | 'radio-button' | 'button'
-	onUpdate?: (active: boolean | string) => void
+	onUpdate?: (id: string, active: string[]) => void
+	onChange?: (id: string, active: string) => void
 	onClick?: () => void
 }
 
-const Button: React.FC<ButtonProps> = ({ active, icon, type, options = [], onClick }) => {
-	const [_active, setActive] = useState<boolean | string>(active)
+const Button: React.FC<ButtonProps> = ({ id, active, icon, type, options = [], onClick, onUpdate, onChange }) => {
+	const [_active, setActive] = useState<string | string[] | undefined>(active)
 
-	const handleClick = (id?: string) => {
-		if (id) setActive(id)
+	const handleClick = (_id?: string) => {
 		if (type === 'button' && onClick) onClick()
-		if (type === 'check-box') setActive(prev => !prev)
+		if (type === 'radio-button' && _id) {
+			setActive(_id)
+			if (onChange && id) onChange(id, _id)
+		}
+		if (type === 'check-box' && _id) handleCheckboxClick(_id)
 	}
 
-	if (type === 'button' || type === 'check-box') {
+	const handleCheckboxClick = (_id: string) => {
+		setActive(prev => {
+			let newState
+			if ((prev as string[]).includes(_id)) newState = (prev as string[]).filter(option => option !== _id)
+			else newState = [...(prev as string[]), _id]
+
+			if (onUpdate && id) onUpdate(id, newState)
+			return newState
+		})
+	}
+
+	const isActive = (_id: string) => {
+		if (!_active) return false
+		if (type === 'check-box') {
+			return (_active as string[]).includes(_id)
+		}
+		return (_active as string) === _id
+	}
+
+	if (type === 'button') {
 		return (
-			<div className={classNames(styles.button, { [styles.active]: _active })} onClick={() => handleClick()}>
+			<div className={styles.button} onClick={() => handleClick()}>
 				<I name={icon} width={26} height={26} />
 			</div>
 		)
@@ -33,7 +57,7 @@ const Button: React.FC<ButtonProps> = ({ active, icon, type, options = [], onCli
 				{options.map(option => (
 					<div
 						key={option.id}
-						className={classNames(styles.button, { [styles.active]: _active === option.id })}
+						className={classNames(styles.button, { [styles.active]: isActive(option.id) })}
 						onClick={() => handleClick(option.id)}
 					>
 						<I name={option.icon} width={26} height={26} />
