@@ -1,15 +1,21 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect, MouseEvent } from 'react'
 import styles from '@styles/Toolbox.module.scss'
 
 export type ColorPickerProps = {
+	id?: string
 	colors: string[]
-	active: string
-	onUpdate?: (active: string) => void
+	active?: string
+	onUpdate?: (id: string, active: string) => void
 }
 
-const ColorPicker: React.FC<ColorPickerProps> = ({ colors, onUpdate, active }) => {
+const ColorPicker: React.FC<ColorPickerProps> = ({ id, colors, onUpdate, active }) => {
 	const [_active, setActive] = useState<string | undefined>(active)
 	const [hover, setHover] = useState<string | undefined>()
+
+	const handleClick = (color: string) => {
+		setActive(color)
+		if (_active && onUpdate && id != undefined) onUpdate(id, color)
+	}
 
 	return (
 		<div className={styles.colorPicker}>
@@ -23,7 +29,7 @@ const ColorPicker: React.FC<ColorPickerProps> = ({ colors, onUpdate, active }) =
 					}}
 					onMouseEnter={() => setHover(color)}
 					onMouseLeave={() => setHover(undefined)}
-					onClick={() => setActive(color)}
+					onClick={() => handleClick(color)}
 				></div>
 			))}
 		</div>
