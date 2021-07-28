@@ -1,7 +1,6 @@
 import React, { useCallback } from 'react'
 import Menu, { Tool } from './Menu'
-import Node, { GraphNode } from '@components/graph/Node'
-import Edge, { GraphEdge } from '@components/graph/Edge'
+import { GraphEdge } from '@components/graph/Edge'
 import Point from '@utils/shape/point'
 import { useGraphEditor } from '@hooks/useGraphEditor'
 import { useDrag } from 'react-use-gesture'
@@ -9,9 +8,36 @@ import SelectedItems from './SelectedItems'
 import EdgeToolbox from '@components/EdgeToolbox'
 
 import styles from '@styles/GraphEditor.module.scss'
+import Nodes from './Nodes'
+import Edges from './Edges'
+import { useKeys } from '@hooks/useKeys'
+import NodeToolbox from '@components/NodeToolbox'
+import { GraphNode } from '@components/graph/Node'
 
 export default function GraphEditor() {
-	const { state, dispatch, getNodeByLabel, getNodeByPosition } = useGraphEditor()
+	const { state, dispatch, getNodeById, getNodeByPosition, typeEdge } = useGraphEditor()
+
+	/*
+	 * Definition of shortcuts
+	 * backspace: Delete selected items
+	 * ctrl+s: active select tool
+	 * ctrl+g: active node brush
+	 * ctrl+e: active edge brush
+	 * ctrl+d: clear page
+	 */
+
+	useKeys(
+		{
+			backspace: () => {
+				if (state.selectedItems.length) dispatch({ type: 'DELETE_SELECTED_ITEMS' })
+			},
+			'ctrl+s': () => dispatch({ type: 'SELECT_TOOL', payload: { toolName: 'select' } }),
+			'ctrl+g': () => dispatch({ type: 'SELECT_TOOL', payload: { toolName: 'add-node' } }),
+			'ctrl+e': () => dispatch({ type: 'SELECT_TOOL', payload: { toolName: 'add-edge' } }),
+			'ctrl+d': () => dispatch({ type: 'CLEAR' }),
+		},
+		[state.selectedItems]
+	)
 
 	const startSelectingArea = (position: Point) => {
 		dispatch({ type: 'CLEAR_SELECTED_ITEMS' })
@@ -37,12 +63,12 @@ export default function GraphEditor() {
 		}
 	}
 
-	const startDrawingEdge = (nodeLabel: string) => {
+	const startDrawingEdge = (nodeId: string) => {
 		if (state.activeTool === 'add-edge') {
 			dispatch({
 				type: 'SET_PREVIEW_EDGE',
 				payload: {
-					source: getNodeByLabel(nodeLabel),
+					source: getNodeById(nodeId),
 				},
 			})
 		}
@@ -51,21 +77,32 @@ export default function GraphEditor() {
 	const drawEdge = (position: Point) => {
 		if (state.activeTool == 'add-edge' && state.previewEdge.source) {
 			const target = getNodeByPosition(position)
+			const edgeType = typeEdge(state.previewEdge.source.id, target?.id)
+
+			const canDraw = target && target.id != state.previewEdge.source.id && edgeType
+
 			dispatch({
 				type: 'SET_PREVIEW_EDGE',
 				payload: {
-					target: target && target.label != state.previewEdge.source.label ? target : { position },
+					target: canDraw ? target : { position },
+					type: edgeType ? edgeType : 'straight',
+					id: !canDraw ? undefined : `edge_${state.previewEdge.source.id}${target!.id}_${edgeType![0]}`,
 				},
 			})
 		}
 	}
 
 	const finishDrawingEdge = () => {
-		if (state.previewEdge.target?.label !== undefined) {
+		if (state.previewEdge.id) {
 			dispatch({
 				type: 'ADD_EDGE',
 				payload: {
-					newEdge: { source: state.previewEdge.source, target: state.previewEdge.target },
+					newEdge: {
+						id: state.previewEdge.id,
+						source: state.previewEdge.source,
+						target: state.previewEdge.target,
+						type: state.previewEdge.type,
+					},
 				},
 			})
 		}
@@ -108,18 +145,57 @@ export default function GraphEditor() {
 	)
 
 	const handleNodeDrag = useCallback(
-		(translate: Point, label: string) => {
-			dispatch({ type: 'SET_NODE_TRANSLATE', payload: { nodeLabel: label, translate } })
+		(translate: Point, id: string) => {
+			dispatch({ type: 'SET_NODE_TRANSLATE', payload: { nodeId: id, translate } })
 		},
 		[dispatch]
 	)
 
 	const handleNodeSelect = useCallback(
-		(label: string) => {
-			const node = getNodeByLabel(label)
+		(id: string) => {
+			const node = getNodeById(id)
 			if (node) dispatch({ type: 'ADD_SELECTED_ITEM', payload: node })
 		},
-		[getNodeByLabel, dispatch]
+		[getNodeById, dispatch]
+	)
+
+	const handleEdgeDirection = useCallback(
+		(id: string, direction: string[]) => dispatch({ type: 'UPDATE_EDGE_DIRECTION', payload: { id, direction } }),
+		[dispatch]
+	)
+
+	const handleEdgeType = useCallback(
+		(id: string, type: string) => dispatch({ type: 'UPDATE_EDGE_TYPE', payload: { id, type } }),
+		[dispatch]
+	)
+
+	const handleEdgeWeight = useCallback(
+		(id: string, weight?: string | number) =>
+			dispatch({
+				type: 'UPDATE_EDGE_WEIGHT',
+				payload: { id, weight: weight !== undefined ? Number(weight) : weight },
+			}),
+		[dispatch]
+	)
+
+	const handleNodeColor = useCallback(
+		(id: string, color: string) => {
+			dispatch({
+				type: 'UPDATE_NODE_COLOR',
+				payload: { id, color },
+			})
+		},
+		[dispatch]
+	)
+
+	const handleNodeLabel = useCallback(
+		(id: string, label?: string | number) => {
+			dispatch({
+				type: 'UPDATE_NODE_LABEL',
+				payload: { id, label },
+			})
+		},
+		[dispatch]
 	)
 
 	return (
@@ -128,7 +204,7 @@ export default function GraphEditor() {
 				<svg {...handleDrag()} onClick={handleClick}>
 					<defs>
 						<marker
-							id='arrow'
+							id='arrow_right'
 							orient='auto'
 							viewBox='0 0 8 8'
 							refX='8'
@@ -138,36 +214,27 @@ export default function GraphEditor() {
 						>
 							<path d='M 0 0 L 8 4 L 0 8 z' fill='#343a40' />
 						</marker>
+						<marker
+							id='arrow_left'
+							orient='auto'
+							viewBox='0 0 8 8'
+							refX='0'
+							refY='4'
+							markerWidth='5'
+							markerHeight='5'
+						>
+							<path d='M 0 4 L 8 0 L 8 8 z' fill='#343a40' />
+						</marker>
 					</defs>
 
-					{state.previewEdge.source && state.previewEdge.target && (
-						<Edge
-							source={state.previewEdge.source.position.clone().add(state.previewEdge.source.translate)}
-							target={state.previewEdge.target.position.clone().add(state.previewEdge.target.translate)}
-							linked={state.previewEdge.target.label !== undefined}
-						/>
-					)}
+					<Edges edges={state.edges} previewEdge={state.previewEdge} />
 
-					{state.edges.map(edge => (
-						<Edge
-							key={`edge_${edge.source.label}${edge.target.label}`}
-							source={edge.source.position.clone().add(edge.source.translate)}
-							target={edge.target.position.clone().add(edge.target.translate)}
-							linked={true}
-						/>
-					))}
-
-					{state.nodes.map(node => (
-						<Node
-							key={`node_${node.label}`}
-							label={node.label}
-							draggable={state.draggable}
-							onDrag={handleNodeDrag}
-							onSelect={handleNodeSelect}
-							color={node.color}
-							position={node.position}
-						/>
-					))}
+					<Nodes
+						nodes={state.nodes}
+						onDrag={handleNodeDrag}
+						onSelect={handleNodeSelect}
+						draggable={state.draggable}
+					/>
 
 					<rect
 						x={state.selectionArea.point.x}
@@ -187,6 +254,18 @@ export default function GraphEditor() {
 						? (state.selectedItems[0] as GraphEdge)
 						: undefined
 				}
+				onChangeDirection={handleEdgeDirection}
+				onChangeEdgeType={handleEdgeType}
+				onChangeWeight={handleEdgeWeight}
+			/>
+			<NodeToolbox
+				node={
+					state.selectedItems.length === 1 && state.selectedItems[0].hasOwnProperty('color')
+						? (state.selectedItems[0] as GraphNode)
+						: undefined
+				}
+				onChangeNodeColor={handleNodeColor}
+				onChangeNodeLabel={handleNodeLabel}
 			/>
 		</div>
 	)
