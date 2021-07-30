@@ -202,7 +202,6 @@ function setSelectedItem(
 	})
 
 	const edges = state.edges.slice().filter(edge => {
-		if (nodes.includes(edge.source) || nodes.includes(edge.target)) return edge
 		const { first, last, control } = calcEdgePosition(
 			edge.source.position.clone().add(edge.source.translate),
 			edge.target.position.clone().add(edge.target.translate),
@@ -255,7 +254,12 @@ function deleteSelectedItems(state: GraphEditorProps, payload: any) {
 		...state,
 		selectedItems: [],
 		nodes: state.nodes.filter(node => !rmNodesId.includes(node.id)),
-		edges: state.edges.filter(edge => !rmEdgesId.includes(edge.id)),
+		edges: state.edges.filter(
+			edge =>
+				!rmEdgesId.includes(edge.id) &&
+				!rmNodesId.includes(edge.source.id) &&
+				!rmNodesId.includes(edge.target.id)
+		),
 	}
 }
 actions.DELETE_SELECTED_ITEMS = deleteSelectedItems
