@@ -27,14 +27,17 @@ const Button: React.FC<ButtonProps> = ({ id, active, icon, type, options = [], o
 	}
 
 	const handleCheckboxClick = (_id: string) => {
+		let newState: string[]
 		setActive(prev => {
-			let newState
-			if ((prev as string[]).includes(_id)) newState = (prev as string[]).filter(option => option !== _id)
-			else newState = [...(prev as string[]), _id]
+			newState = prev as string[]
+			if (newState.includes(_id)) newState.splice(newState.indexOf(_id), 1)
+			else newState.push(_id)
 
-			if (onUpdate && id) onUpdate(id, newState)
 			return newState
 		})
+		setTimeout(() => {
+			if (onUpdate && id && newState) onUpdate(id, newState)
+		}, 0)
 	}
 
 	const isActive = (_id: string) => {
