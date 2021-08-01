@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react'
+import React, { useCallback, useEffect } from 'react'
 import Menu, { Tool } from './Menu'
 import { GraphEdge } from '@components/graph/Edge'
 import Point from '@utils/shape/point'
@@ -16,6 +16,14 @@ import { GraphNode } from '@components/graph/Node'
 
 export default function GraphEditor() {
 	const { state, dispatch, getNodeById, getNodeByPosition, typeEdge } = useGraphEditor()
+
+	useEffect(() => {
+		function contextmenu(e: MouseEvent) {
+			e.preventDefault()
+		}
+		document.addEventListener('contextmenu', contextmenu)
+		return () => document.removeEventListener('contextmenu', contextmenu)
+	}, [])
 
 	/*
 	 * Definition of shortcuts
