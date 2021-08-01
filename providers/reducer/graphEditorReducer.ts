@@ -55,12 +55,16 @@ export default function reducer(state: GraphEditorProps, action: Action<ActionTy
 	else throw new Error('unexpected action type')
 }
 
-function selectTool(state: GraphEditorProps, payload: any) {
-	return { ...state, activeTool: payload.toolName, draggable: payload.toolName === 'select' ? true : false }
+actions.SELECT_TOOL = function (state: GraphEditorProps, payload: any) {
+	return {
+		...state,
+		activeTool: payload.toolName,
+		draggable: payload.toolName === 'select' ? true : false,
+		selectedItems: [],
+	}
 }
-actions.SELECT_TOOL = selectTool
 
-function addNode(state: GraphEditorProps, payload: any) {
+actions.ADD_NEW_NODE = function (state: GraphEditorProps, payload: any) {
 	return {
 		...state,
 		nodes: [
@@ -75,9 +79,8 @@ function addNode(state: GraphEditorProps, payload: any) {
 		lastNodeId: state.lastNodeId + 1,
 	}
 }
-actions.ADD_NEW_NODE = addNode
 
-function updateEdgeWeight(state: GraphEditorProps, payload: any) {
+actions.UPDATE_EDGE_WEIGHT = function (state: GraphEditorProps, payload: any) {
 	const edges = state.edges.map(edge => {
 		if (edge.id !== payload.id) return edge
 		return { ...edge, weight: payload.weight }
@@ -85,9 +88,7 @@ function updateEdgeWeight(state: GraphEditorProps, payload: any) {
 	return { ...state, edges }
 }
 
-actions.UPDATE_EDGE_WEIGHT = updateEdgeWeight
-
-function setNodeTranslate(state: GraphEditorProps, payload: any) {
+actions.SET_NODE_TRANSLATE = function (state: GraphEditorProps, payload: any) {
 	const { nodeId, translate } = payload
 	return {
 		...state,
@@ -102,24 +103,20 @@ function setNodeTranslate(state: GraphEditorProps, payload: any) {
 		}),
 	}
 }
-actions.SET_NODE_TRANSLATE = setNodeTranslate
 
-function setPreviewEdge(state: GraphEditorProps, payload: any) {
+actions.SET_PREVIEW_EDGE = function (state: GraphEditorProps, payload: any) {
 	return { ...state, previewEdge: { ...state.previewEdge, ...payload } }
 }
-actions.SET_PREVIEW_EDGE = setPreviewEdge
 
-function clearPreviewEdge(state: GraphEditorProps, payload: any) {
+actions.CLEAR_PREVIEW_EDGE = function (state: GraphEditorProps, payload: any) {
 	return { ...state, previewEdge: {} }
 }
-actions.CLEAR_PREVIEW_EDGE = clearPreviewEdge
 
-function addEdge(state: GraphEditorProps, payload: any) {
+actions.ADD_EDGE = function (state: GraphEditorProps, payload: any) {
 	return { ...state, edges: [...state.edges, { ...payload.newEdge, direction: 'none' }] }
 }
-actions.ADD_EDGE = addEdge
 
-function updateEdgeDirection(state: GraphEditorProps, payload: any) {
+actions.UPDATE_EDGE_DIRECTION = function (state: GraphEditorProps, payload: any) {
 	const edges = state.edges.map(edge => {
 		if (edge.id !== payload.id) return edge
 		if (payload.direction.length == 2) return { ...edge, direction: 'both' } as GraphEdge
@@ -128,18 +125,24 @@ function updateEdgeDirection(state: GraphEditorProps, payload: any) {
 	})
 	return { ...state, edges }
 }
-actions.UPDATE_EDGE_DIRECTION = updateEdgeDirection
 
-function updateEdgeType(state: GraphEditorProps, payload: any) {
+actions.UPDATE_EDGE_TYPE = function (state: GraphEditorProps, payload: any) {
+	let newEdge: GraphEdge | undefined
 	const edges = state.edges.map(edge => {
 		if (edge.id !== payload.id) return edge
-		return { ...edge, type: payload.type }
+		newEdge = { ...edge, type: payload.type }
+		return newEdge
 	})
-	return { ...state, edges }
-}
-actions.UPDATE_EDGE_TYPE = updateEdgeType
 
-function updateNodeColor(state: GraphEditorProps, payload: any) {
+	const selectedItems =
+		newEdge && state.selectedItems.length == 1 && state.selectedItems[0].id == newEdge.id
+			? [newEdge]
+			: state.selectedItems
+
+	return { ...state, edges, selectedItems }
+}
+
+actions.UPDATE_NODE_COLOR = function (state: GraphEditorProps, payload: any) {
 	const nodes = state.nodes.map(node => {
 		if (node.id !== payload.id) return node
 		return { ...node, color: payload.color }
@@ -152,9 +155,7 @@ function updateNodeColor(state: GraphEditorProps, payload: any) {
 	return { ...state, nodes, edges }
 }
 
-actions.UPDATE_NODE_COLOR = updateNodeColor
-
-function updateNodeLabel(state: GraphEditorProps, payload: any) {
+actions.UPDATE_NODE_LABEL = function (state: GraphEditorProps, payload: any) {
 	const nodes = state.nodes.map(node => {
 		if (node.id !== payload.id) return node
 		return { ...node, label: payload.label }
@@ -167,16 +168,15 @@ function updateNodeLabel(state: GraphEditorProps, payload: any) {
 	return { ...state, nodes, edges }
 }
 
-actions.UPDATE_NODE_LABEL = updateNodeLabel
-
-function setSelectedArea(state: GraphEditorProps, payload: any) {
+actions.SET_SELECTED_AREA = function (state: GraphEditorProps, payload: any) {
+	const selectedItems = setSelectedItem(state, { ...state.selectionArea, ...payload })
 	return {
 		...state,
 		selectionArea: { ...state.selectionArea, ...payload },
-		selectedItems: setSelectedItem(state, { ...state.selectionArea, ...payload }),
+		selectedItems: selectedItems,
+		draggable: selectedItems.length == 0,
 	}
 }
-actions.SET_SELECTED_AREA = setSelectedArea
 
 function setSelectedItem(
 	state: GraphEditorProps,
@@ -226,23 +226,23 @@ function setSelectedItem(
 	return [...nodes, ...edges]
 }
 
-function addSelectedItem(state: GraphEditorProps, payload: any) {
+actions.ADD_SELECTED_ITEM = function (state: GraphEditorProps, payload: any) {
 	return {
 		...state,
 		selectedItems: [payload],
+		draggable: false,
 	}
 }
-actions.ADD_SELECTED_ITEM = addSelectedItem
 
-function clearSelectedItems(state: GraphEditorProps, payload: any) {
+actions.CLEAR_SELECTED_ITEMS = function (state: GraphEditorProps, payload: any) {
 	return {
 		...state,
 		selectedItems: [],
+		draggable: true,
 	}
 }
-actions.CLEAR_SELECTED_ITEMS = clearSelectedItems
 
-function deleteSelectedItems(state: GraphEditorProps, payload: any) {
+actions.DELETE_SELECTED_ITEMS = function (state: GraphEditorProps, payload: any) {
 	if (state.selectedItems.length == 0) return state
 	let rmEdgesId: string[] = [],
 		rmNodesId: string[] = []
@@ -262,9 +262,7 @@ function deleteSelectedItems(state: GraphEditorProps, payload: any) {
 		),
 	}
 }
-actions.DELETE_SELECTED_ITEMS = deleteSelectedItems
 
-function clear(state: GraphEditorProps, payload: any) {
+actions.CLEAR = function (state: GraphEditorProps, payload: any) {
 	return defultValue
 }
-actions.CLEAR = clear
