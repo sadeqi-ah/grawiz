@@ -1,0 +1,35 @@
+.button {
+    display: flex;
+    margin: 1px;
+    position: relative;
+    fill: #9699a5;
+    transition: 200ms;
+    cursor: pointer;
+    width: 34px;
+    height: 34px;
+    justify-content: center;
+    align-items: center;
+
+    &:hover,
+    &.active {
+        fill: var(--main-color);
+    }
+
+    &::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        border-radius: 100%;
+        transition: 300ms;
+        transform: scale(0);
+    }
+
+    &:hover::after,
+    &.active::after {
+        background-color: var(--main-color-with-alpha);
+        transform: scale(1);
+    }
+}
