@@ -1,7 +1,7 @@
 import React, { memo } from 'react'
 import { COLORS, NODE_RADIUS } from '@constants'
-import Toolbox from './toolbox'
-import { GraphNode } from './graph/Node'
+import Toolbox from '@components/Toolbox'
+import { GraphNode } from '@components/graph/Node'
 import Point from '@utils/shape/point'
 import isEqual from 'lodash/isEqual'
 
@@ -43,4 +43,4 @@ const NodeToolbox: React.FC<NodeToolboxProps> = ({ node, onChangeNodeColor, onCh
 	)
 }
 
-export default memo(NodeToolbox, isEqual)
+export default memo(NodeToolbox, (prev, next) => isEqual(prev.node?.id, next.node?.id))

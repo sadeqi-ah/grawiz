@@ -1,15 +1,16 @@
-import React, { memo } from 'react'
+import React, { memo, useEffect } from 'react'
 import Line from '@utils/shape/line'
 import Point from '@utils/shape/point'
 import Quadbezier from '@utils/shape/quadbezier'
-import { calcEdgePosition, GraphEdge } from './graph/Edge'
-import Toolbox from './toolbox'
+import { calcEdgePosition, GraphEdge } from '@components/graph/Edge'
+import Toolbox from '@components/Toolbox'
 import isEqual from 'lodash/isEqual'
+import { ButtonState } from '@components/Button'
 
 export type EdgeToolboxProps = {
 	edge?: GraphEdge
-	onChangeDirection?: (id: string, direction: string[]) => void
-	onChangeEdgeType?: (id: string, type: string) => void
+	onChangeDirection?: (id: string, state: ButtonState) => void
+	onChangeEdgeType?: (id: string, state: ButtonState) => void
 	onChangeWeight?: (id: string, weight?: string | number) => void
 	defaultValue?: {
 		direction?: string[]
@@ -25,6 +26,10 @@ const EdgeToolbox: React.FC<EdgeToolboxProps> = ({
 	onChangeWeight,
 	defaultValue,
 }) => {
+	useEffect(() => {
+		console.log('d', edge?.direction)
+	})
+
 	const calcEdgeToolboxPosition = (width: number, height: number) => {
 		if (!edge) return
 		const { first, control, last } = calcEdgePosition(
@@ -70,26 +75,26 @@ const EdgeToolbox: React.FC<EdgeToolboxProps> = ({
 				<Toolbox.Group>
 					<Toolbox.Button
 						id={edge?.id}
-						type='check-box'
+						type='checkbox'
 						options={[
 							{ id: 'start', icon: 'ArrowLeft' },
 							{ id: 'end', icon: 'ArrowRight' },
 						]}
 						onUpdate={onChangeDirection}
-						active={activeDirection()}
+						status={activeDirection()}
 					/>
 				</Toolbox.Group>
 				<Toolbox.Group>
 					<Toolbox.Button
 						id={edge?.id}
-						type='radio-button'
+						type='radio'
 						options={[
 							{ id: 'straight', icon: 'Line' },
 							{ id: 'curve', icon: 'UpwardCurve' },
 							{ id: 'reverse-curve', icon: 'DownwardCurve' },
 						]}
-						onChange={onChangeEdgeType}
-						active={edge?.type}
+						onUpdate={onChangeEdgeType}
+						status={edge?.type && [edge?.type]}
 					/>
 				</Toolbox.Group>
 			</Toolbox.Row>
@@ -109,4 +114,4 @@ const EdgeToolbox: React.FC<EdgeToolboxProps> = ({
 	)
 }
 
-export default memo(EdgeToolbox, isEqual)
+export default memo(EdgeToolbox, (prev, next) => isEqual(prev.edge?.id, next.edge?.id))
