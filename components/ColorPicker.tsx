@@ -1,5 +1,5 @@
-import React, { useState, useEffect, MouseEvent } from 'react'
-import styles from '@styles/Toolbox.module.scss'
+import React, { useState } from 'react'
+import styles from '@styles/ColorPicker.module.scss'
 
 export type ColorPickerProps = {
 	id?: string
