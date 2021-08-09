@@ -1,0 +1,13 @@
+.colorPicker {
+    display: flex;
+    padding: 5px 0;
+
+    .color {
+        width: 24px;
+        height: 24px;
+        border-radius: 40px;
+        margin: 4px;
+        cursor: pointer;
+        transition: all 0.1s;
+    }
+}
