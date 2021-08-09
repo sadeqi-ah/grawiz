@@ -1,5 +1,5 @@
 import React, { ChangeEvent, useState } from 'react'
-import styles from '@styles/Toolbox.module.scss'
+import styles from '@styles/Input.module.scss'
 
 export type InputProps = {
 	id: string | undefined
