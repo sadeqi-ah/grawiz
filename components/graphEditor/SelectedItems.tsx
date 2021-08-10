@@ -1,12 +1,11 @@
 import React from 'react'
 import { NODE_RADIUS } from '@constants'
 import { useGraphEditor } from '@hooks/useGraphEditor'
-import { calcEdgePosition, GraphEdge } from '@components/graph/Edge'
-import { GraphNode } from '@components/graph/Node'
+import { calcEdgePosition } from '@components/graph/Edge'
 import Quadbezier from '@utils/shape/quadbezier'
 
 const SelectedItems = () => {
-	const { state } = useGraphEditor()
+	const { state, getNodeById, getEdgeById } = useGraphEditor()
 
 	function calcRectProps() {
 		let minX = Infinity,
@@ -14,16 +13,20 @@ const SelectedItems = () => {
 			maxX = 0,
 			maxY = 0
 
-		state.selectedItems.forEach(item => {
-			if (item.hasOwnProperty('color')) {
-				const node = item as GraphNode
+		state.selectedItems.nodes.forEach(nodeId => {
+			const node = getNodeById(nodeId)
+			if (node) {
 				const nodeOffset = node.position.clone().add(node.translate)
 				minX = Math.min(nodeOffset.x - NODE_RADIUS, minX)
 				maxX = Math.max(nodeOffset.x + NODE_RADIUS, maxX)
 				minY = Math.min(nodeOffset.y - NODE_RADIUS, minY)
 				maxY = Math.max(nodeOffset.y + NODE_RADIUS, maxY)
-			} else {
-				const edge = item as GraphEdge
+			}
+		})
+
+		state.selectedItems.edges.forEach(edgeId => {
+			const edge = getEdgeById(edgeId)
+			if (edge) {
 				const edgePos = calcEdgePosition(
 					edge.source.position.clone().add(edge.source.translate),
 					edge.target.position.clone().add(edge.target.translate),

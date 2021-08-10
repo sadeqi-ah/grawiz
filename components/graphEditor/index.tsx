@@ -1,21 +1,20 @@
 import React, { useCallback, useEffect } from 'react'
 import Menu, { Tool } from './Menu'
-import { GraphEdge } from '@components/graph/Edge'
 import Point from '@utils/shape/point'
 import { useGraphEditor } from '@hooks/useGraphEditor'
 import { useDrag } from 'react-use-gesture'
 import SelectedItems from './SelectedItems'
-import EdgeToolbox from '@components/EdgeToolbox'
-
-import styles from '@styles/GraphEditor.module.scss'
+import EdgeToolbox from '@components/graphEditor/EdgeToolbox'
 import Nodes from './Nodes'
 import Edges from './Edges'
 import { useKeys } from '@hooks/useKeys'
-import NodeToolbox from '@components/NodeToolbox'
-import { GraphNode } from '@components/graph/Node'
+import NodeToolbox from '@components/graphEditor/NodeToolbox'
+
+import styles from '@styles/GraphEditor.module.scss'
+import { ButtonState } from '@components/Button'
 
 export default function GraphEditor() {
-	const { state, dispatch, getNodeById, getNodeByPosition, typeEdge } = useGraphEditor()
+	const { state, dispatch, getNodeById, getNodeByPosition, typeEdge, getEdgeById } = useGraphEditor()
 
 	useEffect(() => {
 		function contextmenu(e: MouseEvent) {
@@ -37,7 +36,8 @@ export default function GraphEditor() {
 	useKeys(
 		{
 			backspace: () => {
-				if (state.selectedItems.length) dispatch({ type: 'DELETE_SELECTED_ITEMS' })
+				if (state.selectedItems.nodes.length || state.selectedItems.edges.length)
+					dispatch({ type: 'DELETE_SELECTED_ITEMS' })
 			},
 			'ctrl+s': () => dispatch({ type: 'SELECT_TOOL', payload: { toolName: 'select' } }),
 			'ctrl+g': () => dispatch({ type: 'SELECT_TOOL', payload: { toolName: 'add-node' } }),
@@ -161,19 +161,23 @@ export default function GraphEditor() {
 
 	const handleNodeSelect = useCallback(
 		(id: string) => {
-			const node = getNodeById(id)
-			if (node) dispatch({ type: 'ADD_SELECTED_ITEM', payload: node })
+			dispatch({ type: 'ADD_SELECTED_ITEM', payload: id })
 		},
 		[getNodeById, dispatch]
 	)
 
 	const handleEdgeDirection = useCallback(
-		(id: string, direction: string[]) => dispatch({ type: 'UPDATE_EDGE_DIRECTION', payload: { id, direction } }),
+		(id: string, direction: ButtonState) => {
+			dispatch({ type: 'UPDATE_EDGE_DIRECTION', payload: { id, direction } })
+		},
 		[dispatch]
 	)
 
 	const handleEdgeType = useCallback(
-		(id: string, type: string) => dispatch({ type: 'UPDATE_EDGE_TYPE', payload: { id, type } }),
+		(id: string, type: ButtonState) => {
+			if (typeof type === 'object' && type.length === 1)
+				dispatch({ type: 'UPDATE_EDGE_TYPE', payload: { id, type: type[0] } })
+		},
 		[dispatch]
 	)
 
@@ -258,8 +262,8 @@ export default function GraphEditor() {
 			<Menu active={state.activeTool} onUpdate={handleMenu} />
 			<EdgeToolbox
 				edge={
-					state.selectedItems.length === 1 && !state.selectedItems[0].hasOwnProperty('color')
-						? (state.selectedItems[0] as GraphEdge)
+					state.selectedItems.nodes.length === 0 && state.selectedItems.edges.length === 1
+						? getEdgeById(state.selectedItems.edges[0])
 						: undefined
 				}
 				onChangeDirection={handleEdgeDirection}
@@ -268,8 +272,8 @@ export default function GraphEditor() {
 			/>
 			<NodeToolbox
 				node={
-					state.selectedItems.length === 1 && state.selectedItems[0].hasOwnProperty('color')
-						? (state.selectedItems[0] as GraphNode)
+					state.selectedItems.nodes.length === 1 && state.selectedItems.edges.length === 0
+						? getNodeById(state.selectedItems.nodes[0])
 						: undefined
 				}
 				onChangeNodeColor={handleNodeColor}
