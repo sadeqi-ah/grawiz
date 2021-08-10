@@ -1,0 +1,16 @@
+.container {
+    position: relative;
+    top: 10px;
+    right: -10px;
+    direction: ltr;
+    padding: 20px 25px;
+    border-radius: 20px;
+    background-color: #fff;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.055);
+
+    .title {
+        color: var(--gray-l4-color);
+        font-size: 13px;
+        padding: 5px 0;
+    }
+}
