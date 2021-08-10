@@ -4,7 +4,7 @@ import { Tool } from '@components/graphEditor/Menu'
 import { GraphNode } from '@components/graph/Node'
 import Point from '@utils/shape/point'
 import { Action } from './types'
-import reducer, { ActionType, defultValue } from './reducer/graphEditorReducer'
+import reducer, { ActionType, defaultValue } from './reducer/graphEditorReducer'
 
 export type GraphEditorProps = {
 	activeTool: Tool
@@ -12,7 +12,7 @@ export type GraphEditorProps = {
 	edges: GraphEdge[]
 	previewEdge: Partial<GraphEdge>
 	draggable: boolean
-	selectedItems: (GraphEdge | GraphNode)[]
+	selectedItems: SelectedItems
 	selectionArea: {
 		point: Point
 		width: number
@@ -21,11 +21,16 @@ export type GraphEditorProps = {
 	lastNodeId: number
 }
 
-export const GraphEditorContext = createContext<GraphEditorProps>(defultValue)
+export type SelectedItems = {
+	edges: string[]
+	nodes: string[]
+}
+
+export const GraphEditorContext = createContext<GraphEditorProps>(defaultValue)
 export const GraphEditorDispatchContext = createContext<React.Dispatch<Action<ActionType, any>>>(() => null)
 
 export const GraphEditorProvider: React.FC = ({ children }) => {
-	const [state, dispatch] = useReducer(reducer, defultValue)
+	const [state, dispatch] = useReducer(reducer, defaultValue)
 	return (
 		<GraphEditorDispatchContext.Provider value={dispatch}>
 			<GraphEditorContext.Provider value={state}>{children}</GraphEditorContext.Provider>

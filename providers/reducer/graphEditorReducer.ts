@@ -26,13 +26,18 @@ export type ActionType =
 	| 'UPDATE_NODE_COLOR'
 	| 'UPDATE_NODE_LABEL'
 
-export const defultValue: GraphEditorProps = {
+export const defaultSelectedItems = {
+	nodes: [],
+	edges: [],
+}
+
+export const defaultValue: GraphEditorProps = {
 	activeTool: 'select',
 	nodes: [],
 	edges: [],
 	previewEdge: {},
 	draggable: true,
-	selectedItems: [],
+	selectedItems: defaultSelectedItems,
 	selectionArea: {
 		point: Point.ZERO(),
 		width: 0,
@@ -60,7 +65,7 @@ actions.SELECT_TOOL = function (state: GraphEditorProps, payload: any) {
 		...state,
 		activeTool: payload.toolName,
 		draggable: payload.toolName === 'select' ? true : false,
-		selectedItems: [],
+		selectedItems: defaultSelectedItems,
 	}
 }
 
@@ -134,12 +139,7 @@ actions.UPDATE_EDGE_TYPE = function (state: GraphEditorProps, payload: any) {
 		return newEdge
 	})
 
-	const selectedItems =
-		newEdge && state.selectedItems.length == 1 && state.selectedItems[0].id == newEdge.id
-			? [newEdge]
-			: state.selectedItems
-
-	return { ...state, edges, selectedItems }
+	return { ...state, edges }
 }
 
 actions.UPDATE_NODE_COLOR = function (state: GraphEditorProps, payload: any) {
@@ -174,14 +174,17 @@ actions.SET_SELECTED_AREA = function (state: GraphEditorProps, payload: any) {
 		...state,
 		selectionArea: { ...state.selectionArea, ...payload },
 		selectedItems: selectedItems,
-		draggable: selectedItems.length == 0,
+		draggable: selectedItems.nodes.length == 0 && selectedItems.edges.length == 0,
 	}
 }
 
 function setSelectedItem(
 	state: GraphEditorProps,
 	selectionArea: { point: Point; width: number; height: number }
-): (GraphEdge | GraphNode)[] {
+): {
+	nodes: string[]
+	edges: string[]
+} {
 	if (
 		selectionArea.width == 0 ||
 		selectionArea.height == 0 ||
@@ -191,45 +194,55 @@ function setSelectedItem(
 		return state.selectedItems
 	}
 
-	const nodes = state.nodes.slice().filter(node => {
-		const nodeOffset = node.position.clone().add(node.translate)
-		return (
-			nodeOffset.x + NODE_RADIUS >= selectionArea.point.x &&
-			nodeOffset.x - NODE_RADIUS <= selectionArea.point.x + selectionArea.width &&
-			nodeOffset.y + NODE_RADIUS >= selectionArea.point.y &&
-			nodeOffset.y - NODE_RADIUS <= selectionArea.point.y + selectionArea.height
-		)
-	})
-
-	const edges = state.edges.slice().filter(edge => {
-		const { first, last, control } = calcEdgePosition(
-			edge.source.position.clone().add(edge.source.translate),
-			edge.target.position.clone().add(edge.target.translate),
-			edge.type
-		)
-
-		const rect = new Rectangle(
-			new Point(
-				Math.min(selectionArea.point.x, selectionArea.point.x + selectionArea.width),
-				Math.min(selectionArea.point.y, selectionArea.point.y + selectionArea.height)
-			),
-			new Point(
-				Math.max(selectionArea.point.x, selectionArea.point.x + selectionArea.width),
-				Math.max(selectionArea.point.y, selectionArea.point.y + selectionArea.height)
+	const nodes = state.nodes
+		.slice()
+		.filter(node => {
+			const nodeOffset = node.position.clone().add(node.translate)
+			return (
+				nodeOffset.x + NODE_RADIUS >= selectionArea.point.x &&
+				nodeOffset.x - NODE_RADIUS <= selectionArea.point.x + selectionArea.width &&
+				nodeOffset.y + NODE_RADIUS >= selectionArea.point.y &&
+				nodeOffset.y - NODE_RADIUS <= selectionArea.point.y + selectionArea.height
 			)
-		)
+		})
+		.map(node => node.id)
 
-		if (control) return new Quadbezier(first, control, last).intersectionWithRect(rect)
-		return new Line(first, last).intersectionWithRect(rect)
-	})
+	const edges = state.edges
+		.slice()
+		.filter(edge => {
+			const { first, last, control } = calcEdgePosition(
+				edge.source.position.clone().add(edge.source.translate),
+				edge.target.position.clone().add(edge.target.translate),
+				edge.type
+			)
 
-	return [...nodes, ...edges]
+			const rect = new Rectangle(
+				new Point(
+					Math.min(selectionArea.point.x, selectionArea.point.x + selectionArea.width),
+					Math.min(selectionArea.point.y, selectionArea.point.y + selectionArea.height)
+				),
+				new Point(
+					Math.max(selectionArea.point.x, selectionArea.point.x + selectionArea.width),
+					Math.max(selectionArea.point.y, selectionArea.point.y + selectionArea.height)
+				)
+			)
+
+			if (control) return new Quadbezier(first, control, last).intersectionWithRect(rect)
+			return new Line(first, last).intersectionWithRect(rect)
+		})
+		.map(edge => edge.id)
+
+	return { nodes, edges }
 }
 
 actions.ADD_SELECTED_ITEM = function (state: GraphEditorProps, payload: any) {
+	console.log('ADD_SELECTED_ITEM')
 	return {
 		...state,
-		selectedItems: [payload],
+		selectedItems: {
+			nodes: [payload],
+			edges: [],
+		},
 		draggable: false,
 	}
 }
@@ -237,32 +250,26 @@ actions.ADD_SELECTED_ITEM = function (state: GraphEditorProps, payload: any) {
 actions.CLEAR_SELECTED_ITEMS = function (state: GraphEditorProps, payload: any) {
 	return {
 		...state,
-		selectedItems: [],
-		draggable: true,
+		selectedItems: defaultSelectedItems,
+		draggable: state.activeTool === 'select',
 	}
 }
 
 actions.DELETE_SELECTED_ITEMS = function (state: GraphEditorProps, payload: any) {
-	if (state.selectedItems.length == 0) return state
-	let rmEdgesId: string[] = [],
-		rmNodesId: string[] = []
-	state.selectedItems.forEach(item => {
-		if (item.hasOwnProperty('color')) rmNodesId.push((item as GraphNode).id)
-		else rmEdgesId.push((item as GraphEdge).id)
-	})
+	if (state.selectedItems.nodes.length == 0 && state.selectedItems.edges.length == 0) return state
 	return {
 		...state,
-		selectedItems: [],
-		nodes: state.nodes.filter(node => !rmNodesId.includes(node.id)),
+		selectedItems: defaultSelectedItems,
+		nodes: state.nodes.filter(node => !state.selectedItems.nodes.includes(node.id)),
 		edges: state.edges.filter(
 			edge =>
-				!rmEdgesId.includes(edge.id) &&
-				!rmNodesId.includes(edge.source.id) &&
-				!rmNodesId.includes(edge.target.id)
+				!state.selectedItems.edges.includes(edge.id) &&
+				!state.selectedItems.nodes.includes(edge.source.id) &&
+				!state.selectedItems.nodes.includes(edge.target.id)
 		),
 	}
 }
 
 actions.CLEAR = function (state: GraphEditorProps, payload: any) {
-	return defultValue
+	return defaultValue
 }
