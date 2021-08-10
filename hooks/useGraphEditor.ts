@@ -9,6 +9,7 @@ export function useGraphEditor() {
 	const dispatch = useContext(GraphEditorDispatchContext)
 
 	const getNodeById = useCallback((id: string) => state.nodes.find(node => node.id == id), [state.nodes])
+	const getEdgeById = useCallback((id: string) => state.edges.find(edge => edge.id == id), [state.edges])
 
 	const getNodeByPosition = useCallback(
 		(position: Point) =>
@@ -43,5 +44,5 @@ export function useGraphEditor() {
 		[state.edges]
 	)
 
-	return { state, dispatch, getNodeById, getNodeByPosition, typeEdge }
+	return { state, dispatch, getNodeById, getNodeByPosition, typeEdge, getEdgeById }
 }
