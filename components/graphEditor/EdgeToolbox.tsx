@@ -26,10 +26,6 @@ const EdgeToolbox: React.FC<EdgeToolboxProps> = ({
 	onChangeWeight,
 	defaultValue,
 }) => {
-	useEffect(() => {
-		console.log('d', edge?.direction)
-	})
-
 	const calcEdgeToolboxPosition = (width: number, height: number) => {
 		if (!edge) return
 		const { first, control, last } = calcEdgePosition(
