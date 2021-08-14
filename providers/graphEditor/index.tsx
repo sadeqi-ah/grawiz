@@ -37,6 +37,5 @@ export const GraphEditorProvider: React.FC = ({ children }) => {
 	)
 }
 
-export const useGraphEditorDispatch = () => {
-	return useContext(GraphEditorDispatchContext)
-}
+export const useGraphEditorStore = () => useContext(GraphEditorContext)
+export const useGraphEditorDispatch = () => useContext(GraphEditorDispatchContext)
