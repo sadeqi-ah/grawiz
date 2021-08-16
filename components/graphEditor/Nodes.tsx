@@ -1,11 +1,12 @@
 import React, { memo } from 'react'
-import Node, { GraphNode } from '@components/graph/Node'
+import NodeComponent from '@components/graph/Node'
 import { useTransition } from 'react-spring'
 import Point from '@utils/shape/point'
 import { isEqual } from 'lodash'
+import { Node } from '@utils/graph/types'
 
 export type NodesProps = {
-	nodes: GraphNode[]
+	nodes: Node[]
 	draggable: boolean
 	onDrag?: (translate: Point, id: string) => void
 	onSelect?: (id: string) => void
@@ -24,7 +25,7 @@ const Nodes: React.FC<NodesProps> = ({ nodes, onDrag, onSelect, draggable }) => 
 	})
 
 	return transitions((vals, item) => (
-		<Node
+		<NodeComponent
 			key={item.id}
 			id={item.id}
 			label={item.label}

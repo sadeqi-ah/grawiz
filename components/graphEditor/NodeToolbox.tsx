@@ -1,12 +1,13 @@
 import React, { memo } from 'react'
 import { COLORS, NODE_RADIUS } from '@constants'
 import Toolbox from '@components/Toolbox'
-import { GraphNode } from '@components/graph/Node'
+import { Node } from '@utils/graph/types'
+
 import Point from '@utils/shape/point'
 import isEqual from 'lodash/isEqual'
 
 export type NodeToolboxProps = {
-	node?: GraphNode
+	node?: Node
 	onChangeNodeColor?: (id: string, color: string) => void
 	onChangeNodeLabel?: (id: string, label?: string | number) => void
 }

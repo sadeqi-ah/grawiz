@@ -1,5 +1,4 @@
 import React, { memo } from 'react'
-import { GraphNode } from './Node'
 import Point from '@utils/shape/point'
 import { NODE_RADIUS } from '@constants'
 import isEqual from 'lodash/isEqual'
@@ -8,15 +7,6 @@ import Line from '@utils/shape/line'
 
 export type EdgeType = 'straight' | 'curve' | 'reverse-curve'
 export type EdgeDirection = 'none' | 'start' | 'end' | 'both'
-
-export type GraphEdge = {
-	id: string
-	source: GraphNode
-	target: GraphNode
-	type: EdgeType
-	direction: EdgeDirection
-	weight?: number
-}
 
 export type EdgeProps = {
 	linked: boolean

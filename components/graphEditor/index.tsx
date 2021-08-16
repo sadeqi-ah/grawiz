@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect } from 'react'
 import Menu, { Tool } from './Menu'
 import Point from '@utils/shape/point'
-import { useGraphEditor } from '@hooks/useGraphEditor'
 import { useDrag } from 'react-use-gesture'
 import SelectedItems from './SelectedItems'
 import EdgeToolbox from '@components/graphEditor/EdgeToolbox'
@@ -9,12 +8,15 @@ import Nodes from './Nodes'
 import Edges from './Edges'
 import { useKeys } from '@hooks/useKeys'
 import NodeToolbox from '@components/graphEditor/NodeToolbox'
+import { ButtonState } from '@components/Button'
+import { useGraphEditorDispatch, useGraphEditorStore } from '@providers/graphEditor'
+import { getEdgeById, getNodeById, getNodeByPosition, getValidEdgeType } from '@utils/graph'
 
 import styles from '@styles/GraphEditor.module.scss'
-import { ButtonState } from '@components/Button'
 
 export default function GraphEditor() {
-	const { state, dispatch, getNodeById, getNodeByPosition, typeEdge, getEdgeById } = useGraphEditor()
+	const state = useGraphEditorStore()
+	const dispatch = useGraphEditorDispatch()
 
 	useEffect(() => {
 		function contextmenu(e: MouseEvent) {
@@ -76,7 +78,7 @@ export default function GraphEditor() {
 			dispatch({
 				type: 'SET_PREVIEW_EDGE',
 				payload: {
-					source: getNodeById(nodeId),
+					source: getNodeById(state.graph.nodes, nodeId),
 				},
 			})
 		}
@@ -84,8 +86,8 @@ export default function GraphEditor() {
 
 	const drawEdge = (position: Point) => {
 		if (state.activeTool == 'add-edge' && state.previewEdge.source) {
-			const target = getNodeByPosition(position)
-			const edgeType = typeEdge(state.previewEdge.source.id, target?.id)
+			const target = getNodeByPosition(state.graph.nodes, position)
+			const edgeType = getValidEdgeType(state.graph, state.previewEdge.source.id, target?.id)
 
 			const canDraw = target && target.id != state.previewEdge.source.id && edgeType
 
@@ -239,10 +241,10 @@ export default function GraphEditor() {
 						</marker>
 					</defs>
 
-					<Edges edges={state.edges} previewEdge={state.previewEdge} />
+					<Edges edges={state.graph.edges} previewEdge={state.previewEdge} />
 
 					<Nodes
-						nodes={state.nodes}
+						nodes={state.graph.nodes}
 						onDrag={handleNodeDrag}
 						onSelect={handleNodeSelect}
 						draggable={state.draggable}
@@ -256,14 +258,19 @@ export default function GraphEditor() {
 						fill={`#42A1F810`}
 						stroke={'#42A1F8'}
 					/>
-					<SelectedItems />
+					<SelectedItems
+						items={{
+							nodes: state.selectedItems.nodes.map(id => getNodeById(state.graph.nodes, id)),
+							edges: state.selectedItems.edges.map(id => getEdgeById(state.graph.edges, id)),
+						}}
+					/>
 				</svg>
 			</div>
 			<Menu active={state.activeTool} onUpdate={handleMenu} />
 			<EdgeToolbox
 				edge={
 					state.selectedItems.nodes.length === 0 && state.selectedItems.edges.length === 1
-						? getEdgeById(state.selectedItems.edges[0])
+						? getEdgeById(state.graph.edges, state.selectedItems.edges[0])
 						: undefined
 				}
 				onChangeDirection={handleEdgeDirection}
@@ -273,7 +280,7 @@ export default function GraphEditor() {
 			<NodeToolbox
 				node={
 					state.selectedItems.nodes.length === 1 && state.selectedItems.edges.length === 0
-						? getNodeById(state.selectedItems.nodes[0])
+						? getNodeById(state.graph.nodes, state.selectedItems.nodes[0])
 						: undefined
 				}
 				onChangeNodeColor={handleNodeColor}

@@ -5,14 +5,7 @@ import { animated } from 'react-spring'
 import { useDrag } from 'react-use-gesture'
 import { isEqual } from 'lodash'
 import { NODE_RADIUS } from '@constants'
-
-export type GraphNode = {
-	id: string
-	label: string
-	position: Point
-	translate?: Point
-	color: string
-}
+import { Node as NodeType } from '@utils/graph/types'
 
 export type NodeProps = {
 	id: string
@@ -20,7 +13,7 @@ export type NodeProps = {
 	onDrag?: (translate: Point, id: string) => void
 	onSelect?: (id: string) => void
 	animateValue?: any
-} & GraphNode
+} & NodeType
 
 const Node = React.forwardRef<SVGCircleElement, NodeProps>(
 	({ id, color, label, position, onDrag, onSelect, draggable, animateValue: { opacity, scale } }, ref) => {

@@ -1,31 +1,21 @@
-import React, { memo, useEffect } from 'react'
+import React, { memo } from 'react'
 import Line from '@utils/shape/line'
 import Point from '@utils/shape/point'
 import Quadbezier from '@utils/shape/quadbezier'
-import { calcEdgePosition, GraphEdge } from '@components/graph/Edge'
+import { calcEdgePosition } from '@components/graph/Edge'
 import Toolbox from '@components/Toolbox'
 import isEqual from 'lodash/isEqual'
 import { ButtonState } from '@components/Button'
+import { Edge } from '@utils/graph/types'
 
 export type EdgeToolboxProps = {
-	edge?: GraphEdge
+	edge?: Edge
 	onChangeDirection?: (id: string, state: ButtonState) => void
 	onChangeEdgeType?: (id: string, state: ButtonState) => void
 	onChangeWeight?: (id: string, weight?: string | number) => void
-	defaultValue?: {
-		direction?: string[]
-		type?: string
-		edgeWeight?: number
-	}
 }
 
-const EdgeToolbox: React.FC<EdgeToolboxProps> = ({
-	edge,
-	onChangeDirection,
-	onChangeEdgeType,
-	onChangeWeight,
-	defaultValue,
-}) => {
+const EdgeToolbox: React.FC<EdgeToolboxProps> = ({ edge, onChangeDirection, onChangeEdgeType, onChangeWeight }) => {
 	const calcEdgeToolboxPosition = (width: number, height: number) => {
 		if (!edge) return
 		const { first, control, last } = calcEdgePosition(

@@ -1,17 +1,18 @@
 import React, { memo } from 'react'
-import Edge, { GraphEdge } from '@components/graph/Edge'
+import EdgeComponent from '@components/graph/Edge'
 import isEqual from 'lodash/isEqual'
+import { Edge } from '@utils/graph/types'
 
 export type EdgesProps = {
-	edges: GraphEdge[]
-	previewEdge: Partial<GraphEdge>
+	edges: Edge[]
+	previewEdge: Partial<Edge>
 }
 
 const Edges = ({ edges, previewEdge }: EdgesProps) => {
 	return (
 		<>
 			{previewEdge.source && previewEdge.target && (
-				<Edge
+				<EdgeComponent
 					source={previewEdge.source.position.clone().add(previewEdge.source.translate)}
 					target={previewEdge.target.position.clone().add(previewEdge.target.translate)}
 					type={previewEdge.type}
@@ -20,7 +21,7 @@ const Edges = ({ edges, previewEdge }: EdgesProps) => {
 			)}
 
 			{edges.map(edge => (
-				<Edge
+				<EdgeComponent
 					key={edge.id}
 					source={edge.source.position.clone().add(edge.source.translate)}
 					target={edge.target.position.clone().add(edge.target.translate)}
