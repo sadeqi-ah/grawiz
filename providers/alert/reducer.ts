@@ -1,9 +1,9 @@
-import { AlertProps } from '@providers/AlertProvider'
+import { AlertProps } from '@providers/alert'
 import { Action } from '@providers/types'
 
 export type ActionType = 'SET_TEXT_ALERT' | 'HIDDEN'
 
-export const defultValue: AlertProps = {
+export const defaultValue: AlertProps = {
 	show: false,
 	text: '',
 }

@@ -1,6 +1,6 @@
 import '../styles/globals.scss'
 import { GraphEditorProvider } from '@providers/graphEditor'
-import { AlertProvider } from '@providers/AlertProvider'
+import { AlertProvider } from '@providers/alert'
 
 import type { AppProps } from 'next/app'
 

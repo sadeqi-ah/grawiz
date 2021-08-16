@@ -1,17 +1,17 @@
 import React, { createContext, useContext, useReducer, useRef } from 'react'
-import { Action } from './types'
-import reducer, { ActionType, defultValue } from './reducer/alertReducer'
+import { Action } from '@providers/types'
+import reducer, { ActionType, defaultValue } from './reducer'
 
 export type AlertProps = {
 	show: boolean
 	text: string
 }
 
-export const AlertContext = createContext<AlertProps>(defultValue)
+export const AlertContext = createContext<AlertProps>(defaultValue)
 export const AlertDispatchContext = createContext<React.Dispatch<Action<ActionType, any>>>(() => null)
 
 export const AlertProvider: React.FC = ({ children }) => {
-	const [state, dispatch] = useReducer(reducer, defultValue)
+	const [state, dispatch] = useReducer(reducer, defaultValue)
 	return (
 		<AlertDispatchContext.Provider value={dispatch}>
 			<AlertContext.Provider value={state}>{children}</AlertContext.Provider>

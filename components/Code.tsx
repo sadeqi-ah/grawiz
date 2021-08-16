@@ -1,7 +1,7 @@
 import React from 'react'
 import styles from '@styles/Code.module.scss'
 import { copy } from '@utils/copyTextToClipboard'
-import { useAlertDispatch } from '@providers/AlertProvider'
+import { useAlertDispatch } from '@providers/alert'
 
 export type CodeProps = {
 	code: string[]

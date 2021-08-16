@@ -5,7 +5,7 @@ import Button from '@components/Button'
 import styles from '@styles/GraphEditor.module.scss'
 import ExportBox from '@components/ExportBox'
 import Alert from '@components/Alert'
-import { useAlert } from '@providers/AlertProvider'
+import { useAlert } from '@providers/alert'
 
 const GraphEditor = () => {
 	const [showExportBox, setShowExportBox] = useState(false)

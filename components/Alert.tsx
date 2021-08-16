@@ -1,6 +1,6 @@
 import React from 'react'
 import styles from '@styles/Alert.module.scss'
-import { AlertProps } from '@providers/AlertProvider'
+import { AlertProps } from '@providers/alert'
 import { useTransition, animated } from 'react-spring'
 
 function Alert({ text, show }: AlertProps) {
