@@ -1,5 +1,4 @@
 import React, { createContext, useContext, useReducer } from 'react'
-import { GraphEdge } from '@components/graph/Edge'
 import { Tool } from '@components/graphEditor/Menu'
 import Point from '@utils/shape/point'
 import { Action } from '../types'

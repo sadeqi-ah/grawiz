@@ -1,12 +1,12 @@
 import { COLORS, NODE_RADIUS } from '@constants'
-import { calcEdgePosition, GraphEdge } from '@components/graph/Edge'
+import { calcEdgePosition } from '@components/graph/Edge'
 import { Action } from '@providers/types'
-import { GraphEditorProps } from './'
-import { GraphNode } from '@components/graph/Node'
+import { GraphEditorProps, SelectedItems } from './'
 import Point from '@utils/shape/point'
 import Quadbezier from '@utils/shape/quadbezier'
 import Rectangle from '@utils/shape/rectangle'
 import Line from '@utils/shape/line'
+import { Edge, Node } from '@utils/graph/types'
 
 export type ActionType =
 	| 'ADD_NEW_NODE'
@@ -74,42 +74,56 @@ actions.SELECT_TOOL = function (state: GraphEditorProps, payload: any) {
 }
 
 actions.ADD_NEW_NODE = function (state: GraphEditorProps, payload: any) {
+	const { graph } = state
 	return {
 		...state,
-		nodes: [
-			...state.graph.nodes,
-			{
-				...payload.newNode,
-				id: `node_${state.lastNodeId + 1}`,
-				color: COLORS[(state.lastNodeId + 1) % COLORS.length],
-				translate: Point.ZERO(),
-			},
-		],
+		graph: {
+			...graph,
+			nodes: [
+				...graph.nodes,
+				{
+					...payload.newNode,
+					id: `node_${state.lastNodeId + 1}`,
+					color: COLORS[(state.lastNodeId + 1) % COLORS.length],
+					translate: Point.ZERO(),
+				},
+			],
+		},
 		lastNodeId: state.lastNodeId + 1,
 	}
 }
 
 actions.UPDATE_EDGE_WEIGHT = function (state: GraphEditorProps, payload: any) {
-	const edges = state.graph.edges.map(edge => {
+	const { graph } = state
+
+	const edges = graph.edges.map(edge => {
 		if (edge.id !== payload.id) return edge
 		return { ...edge, weight: payload.weight }
 	})
-	return { ...state, edges }
+	return {
+		...state,
+		graph: {
+			...graph,
+			edges,
+		},
+	}
 }
 
 actions.SET_NODE_TRANSLATE = function (state: GraphEditorProps, payload: any) {
 	const { nodeId, translate } = payload
 	return {
 		...state,
-		nodes: state.graph.nodes.map(node => {
-			if (node.id === nodeId) return { ...node, translate: translate } as GraphNode
-			return node
-		}),
-		edges: state.graph.edges.map(edge => {
-			if (edge.source.id === nodeId) return { ...edge, source: { ...edge.source, translate } } as GraphEdge
-			else if (edge.target.id === nodeId) return { ...edge, target: { ...edge.target, translate } } as GraphEdge
-			return edge
-		}),
+		graph: {
+			nodes: state.graph.nodes.map(node => {
+				if (node.id === nodeId) return { ...node, translate: translate } as Node
+				return node
+			}),
+			edges: state.graph.edges.map(edge => {
+				if (edge.source.id === nodeId) return { ...edge, source: { ...edge.source, translate } } as Edge
+				else if (edge.target.id === nodeId) return { ...edge, target: { ...edge.target, translate } } as Edge
+				return edge
+			}),
+		},
 	}
 }
 
@@ -122,28 +136,51 @@ actions.CLEAR_PREVIEW_EDGE = function (state: GraphEditorProps, payload: any) {
 }
 
 actions.ADD_EDGE = function (state: GraphEditorProps, payload: any) {
-	return { ...state, edges: [...state.graph.edges, { ...payload.newEdge, direction: 'none' }] }
+	const { graph } = state
+	return {
+		...state,
+		graph: {
+			...graph,
+			edges: [...state.graph.edges, { ...payload.newEdge, direction: 'none' }],
+		},
+	}
 }
 
 actions.UPDATE_EDGE_DIRECTION = function (state: GraphEditorProps, payload: any) {
+	const { graph } = state
+
 	const edges = state.graph.edges.map(edge => {
 		if (edge.id !== payload.id) return edge
-		if (payload.direction.length == 2) return { ...edge, direction: 'both' } as GraphEdge
-		else if (payload.direction.length == 0) return { ...edge, direction: 'none' } as GraphEdge
-		else return { ...edge, direction: payload.direction[0] } as GraphEdge
+		if (payload.direction.length == 2) return { ...edge, direction: 'both' } as Edge
+		else if (payload.direction.length == 0) return { ...edge, direction: 'none' } as Edge
+		else return { ...edge, direction: payload.direction[0] } as Edge
 	})
-	return { ...state, edges }
+	return {
+		...state,
+		graph: {
+			...graph,
+			edges,
+		},
+	}
 }
 
 actions.UPDATE_EDGE_TYPE = function (state: GraphEditorProps, payload: any) {
-	let newEdge: GraphEdge | undefined
+	const { graph } = state
+
+	let newEdge: Edge | undefined
 	const edges = state.graph.edges.map(edge => {
 		if (edge.id !== payload.id) return edge
 		newEdge = { ...edge, type: payload.type }
 		return newEdge
 	})
 
-	return { ...state, edges }
+	return {
+		...state,
+		graph: {
+			...graph,
+			edges,
+		},
+	}
 }
 
 actions.UPDATE_NODE_COLOR = function (state: GraphEditorProps, payload: any) {
@@ -156,7 +193,7 @@ actions.UPDATE_NODE_COLOR = function (state: GraphEditorProps, payload: any) {
 		if (edge.target.id == payload.id) return { ...edge, target: { ...edge.target, color: payload.color } }
 		return edge
 	})
-	return { ...state, nodes, edges }
+	return { ...state, graph: { nodes, edges } }
 }
 
 actions.UPDATE_NODE_LABEL = function (state: GraphEditorProps, payload: any) {
@@ -169,7 +206,7 @@ actions.UPDATE_NODE_LABEL = function (state: GraphEditorProps, payload: any) {
 		if (edge.target.id == payload.id) return { ...edge, target: { ...edge.target, label: payload.label } }
 		return edge
 	})
-	return { ...state, nodes, edges }
+	return { ...state, graph: { nodes, edges } }
 }
 
 actions.SET_SELECTED_AREA = function (state: GraphEditorProps, payload: any) {
@@ -185,10 +222,7 @@ actions.SET_SELECTED_AREA = function (state: GraphEditorProps, payload: any) {
 function setSelectedItem(
 	state: GraphEditorProps,
 	selectionArea: { point: Point; width: number; height: number }
-): {
-	nodes: string[]
-	edges: string[]
-} {
+): SelectedItems {
 	if (
 		selectionArea.width == 0 ||
 		selectionArea.height == 0 ||
@@ -240,7 +274,6 @@ function setSelectedItem(
 }
 
 actions.ADD_SELECTED_ITEM = function (state: GraphEditorProps, payload: any) {
-	console.log('ADD_SELECTED_ITEM')
 	return {
 		...state,
 		selectedItems: {
@@ -264,13 +297,15 @@ actions.DELETE_SELECTED_ITEMS = function (state: GraphEditorProps, payload: any)
 	return {
 		...state,
 		selectedItems: defaultSelectedItems,
-		nodes: state.graph.nodes.filter(node => !state.selectedItems.nodes.includes(node.id)),
-		edges: state.graph.edges.filter(
-			edge =>
-				!state.selectedItems.edges.includes(edge.id) &&
-				!state.selectedItems.nodes.includes(edge.source.id) &&
-				!state.selectedItems.nodes.includes(edge.target.id)
-		),
+		graph: {
+			nodes: state.graph.nodes.filter(node => !state.selectedItems.nodes.includes(node.id)),
+			edges: state.graph.edges.filter(
+				edge =>
+					!state.selectedItems.edges.includes(edge.id) &&
+					!state.selectedItems.nodes.includes(edge.source.id) &&
+					!state.selectedItems.nodes.includes(edge.target.id)
+			),
+		},
 	}
 }
 
