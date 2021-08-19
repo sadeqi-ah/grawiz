@@ -77,7 +77,6 @@ function Button({
 			</div>
 		)
 	} else {
-		console.log(type)
 		return (
 			<div className={styles.container}>
 				{options &&

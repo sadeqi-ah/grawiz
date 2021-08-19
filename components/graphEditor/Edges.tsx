@@ -1,11 +1,11 @@
 import React, { memo } from 'react'
 import EdgeComponent from '@components/graph/Edge'
 import isEqual from 'lodash/isEqual'
-import { Edge } from '@utils/graph/types'
+import { FullEdge, PreviewEdge } from '@utils/graph/types'
 
 export type EdgesProps = {
-	edges: Edge[]
-	previewEdge: Partial<Edge>
+	edges: FullEdge[]
+	previewEdge: PreviewEdge
 }
 
 const Edges = ({ edges, previewEdge }: EdgesProps) => {

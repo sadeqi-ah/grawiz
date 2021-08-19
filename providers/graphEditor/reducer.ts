@@ -6,39 +6,31 @@ import Point from '@utils/shape/point'
 import Quadbezier from '@utils/shape/quadbezier'
 import Rectangle from '@utils/shape/rectangle'
 import Line from '@utils/shape/line'
-import { Edge, Node } from '@utils/graph/types'
+import Graph from '@utils/graph'
 
 export type ActionType =
 	| 'ADD_NEW_NODE'
+	| 'ADD_EDGE'
+	| 'UPDATE_NODE'
+	| 'UPDATE_EDGE'
 	| 'SELECT_TOOL'
 	| 'CLEAR'
 	| 'SET_PREVIEW_EDGE'
 	| 'CLEAR_PREVIEW_EDGE'
 	| 'SET_NODE_TRANSLATE'
-	| 'ADD_EDGE'
 	| 'SET_SELECTED_AREA'
 	| 'ADD_SELECTED_ITEM'
 	| 'CLEAR_SELECTED_ITEMS'
-	| 'UPDATE_EDGE_DIRECTION'
-	| 'UPDATE_EDGE_TYPE'
-	| 'UPDATE_EDGE_WEIGHT'
 	| 'DELETE_SELECTED_ITEMS'
-	| 'UPDATE_NODE_COLOR'
-	| 'UPDATE_NODE_LABEL'
 
 export const defaultSelectedItems = {
 	nodes: [],
 	edges: [],
 }
 
-export const defaultGraph = {
-	nodes: [],
-	edges: [],
-}
-
 export const defaultValue: GraphEditorProps = {
 	activeTool: 'select',
-	graph: defaultGraph,
+	graph: new Graph(),
 	previewEdge: {},
 	draggable: true,
 	selectedItems: defaultSelectedItems,
@@ -75,55 +67,16 @@ actions.SELECT_TOOL = function (state: GraphEditorProps, payload: any) {
 
 actions.ADD_NEW_NODE = function (state: GraphEditorProps, payload: any) {
 	const { graph } = state
+
 	return {
 		...state,
-		graph: {
-			...graph,
-			nodes: [
-				...graph.nodes,
-				{
-					...payload.newNode,
-					id: `node_${state.lastNodeId + 1}`,
-					color: COLORS[(state.lastNodeId + 1) % COLORS.length],
-					translate: Point.ZERO(),
-				},
-			],
-		},
+		graph: graph.clone().addNode({
+			...payload.newNode,
+			id: `node_${state.lastNodeId + 1}`,
+			color: COLORS[(state.lastNodeId + 1) % COLORS.length],
+			translate: Point.ZERO(),
+		}),
 		lastNodeId: state.lastNodeId + 1,
-	}
-}
-
-actions.UPDATE_EDGE_WEIGHT = function (state: GraphEditorProps, payload: any) {
-	const { graph } = state
-
-	const edges = graph.edges.map(edge => {
-		if (edge.id !== payload.id) return edge
-		return { ...edge, weight: payload.weight }
-	})
-	return {
-		...state,
-		graph: {
-			...graph,
-			edges,
-		},
-	}
-}
-
-actions.SET_NODE_TRANSLATE = function (state: GraphEditorProps, payload: any) {
-	const { nodeId, translate } = payload
-	return {
-		...state,
-		graph: {
-			nodes: state.graph.nodes.map(node => {
-				if (node.id === nodeId) return { ...node, translate: translate } as Node
-				return node
-			}),
-			edges: state.graph.edges.map(edge => {
-				if (edge.source.id === nodeId) return { ...edge, source: { ...edge.source, translate } } as Edge
-				else if (edge.target.id === nodeId) return { ...edge, target: { ...edge.target, translate } } as Edge
-				return edge
-			}),
-		},
 	}
 }
 
@@ -137,76 +90,26 @@ actions.CLEAR_PREVIEW_EDGE = function (state: GraphEditorProps, payload: any) {
 
 actions.ADD_EDGE = function (state: GraphEditorProps, payload: any) {
 	const { graph } = state
+
+	const newGraph = graph.clone().addEdge(payload.source, payload.target)
 	return {
 		...state,
-		graph: {
-			...graph,
-			edges: [...state.graph.edges, { ...payload.newEdge, direction: 'none' }],
-		},
+		graph: newGraph || graph,
 	}
 }
 
-actions.UPDATE_EDGE_DIRECTION = function (state: GraphEditorProps, payload: any) {
+actions.UPDATE_EDGE = function (state: GraphEditorProps, payload: any) {
 	const { graph } = state
-
-	const edges = state.graph.edges.map(edge => {
-		if (edge.id !== payload.id) return edge
-		if (payload.direction.length == 2) return { ...edge, direction: 'both' } as Edge
-		else if (payload.direction.length == 0) return { ...edge, direction: 'none' } as Edge
-		else return { ...edge, direction: payload.direction[0] } as Edge
-	})
 	return {
 		...state,
-		graph: {
-			...graph,
-			edges,
-		},
+		graph: graph.clone().updateEdge(payload.id, payload.data),
 	}
 }
 
-actions.UPDATE_EDGE_TYPE = function (state: GraphEditorProps, payload: any) {
+actions.UPDATE_NODE = function (state: GraphEditorProps, payload: any) {
 	const { graph } = state
-
-	let newEdge: Edge | undefined
-	const edges = state.graph.edges.map(edge => {
-		if (edge.id !== payload.id) return edge
-		newEdge = { ...edge, type: payload.type }
-		return newEdge
-	})
-
-	return {
-		...state,
-		graph: {
-			...graph,
-			edges,
-		},
-	}
-}
-
-actions.UPDATE_NODE_COLOR = function (state: GraphEditorProps, payload: any) {
-	const nodes = state.graph.nodes.map(node => {
-		if (node.id !== payload.id) return node
-		return { ...node, color: payload.color }
-	})
-	const edges = state.graph.edges.map(edge => {
-		if (edge.source.id == payload.id) return { ...edge, source: { ...edge.source, color: payload.color } }
-		if (edge.target.id == payload.id) return { ...edge, target: { ...edge.target, color: payload.color } }
-		return edge
-	})
-	return { ...state, graph: { nodes, edges } }
-}
-
-actions.UPDATE_NODE_LABEL = function (state: GraphEditorProps, payload: any) {
-	const nodes = state.graph.nodes.map(node => {
-		if (node.id !== payload.id) return node
-		return { ...node, label: payload.label }
-	})
-	const edges = state.graph.edges.map(edge => {
-		if (edge.source.id == payload.id) return { ...edge, source: { ...edge.source, label: payload.label } }
-		if (edge.target.id == payload.id) return { ...edge, target: { ...edge.target, label: payload.label } }
-		return edge
-	})
-	return { ...state, graph: { nodes, edges } }
+	const newGraph = graph.clone().updateNode(payload.id, payload.data)
+	return { ...state, graph: newGraph }
 }
 
 actions.SET_SELECTED_AREA = function (state: GraphEditorProps, payload: any) {
@@ -233,7 +136,6 @@ function setSelectedItem(
 	}
 
 	const nodes = state.graph.nodes
-		.slice()
 		.filter(node => {
 			const nodeOffset = node.position.clone().add(node.translate)
 			return (
@@ -246,11 +148,13 @@ function setSelectedItem(
 		.map(node => node.id)
 
 	const edges = state.graph.edges
-		.slice()
 		.filter(edge => {
+			const source = state.graph.getNode(edge.source)
+			const target = state.graph.getNode(edge.target)
+			if (!source || !target) return false
 			const { first, last, control } = calcEdgePosition(
-				edge.source.position.clone().add(edge.source.translate),
-				edge.target.position.clone().add(edge.target.translate),
+				source.position.clone().add(source.translate),
+				target.position.clone().add(target.translate),
 				edge.type
 			)
 
@@ -294,18 +198,15 @@ actions.CLEAR_SELECTED_ITEMS = function (state: GraphEditorProps, payload: any) 
 
 actions.DELETE_SELECTED_ITEMS = function (state: GraphEditorProps, payload: any) {
 	if (state.selectedItems.nodes.length == 0 && state.selectedItems.edges.length == 0) return state
+	const { graph } = state
+	const newGraph = graph.clone()
+	state.selectedItems.nodes.forEach(id => newGraph.deleteNode(id))
+	state.selectedItems.edges.forEach(id => newGraph.deleteEdge(id))
+
 	return {
 		...state,
 		selectedItems: defaultSelectedItems,
-		graph: {
-			nodes: state.graph.nodes.filter(node => !state.selectedItems.nodes.includes(node.id)),
-			edges: state.graph.edges.filter(
-				edge =>
-					!state.selectedItems.edges.includes(edge.id) &&
-					!state.selectedItems.nodes.includes(edge.source.id) &&
-					!state.selectedItems.nodes.includes(edge.target.id)
-			),
-		},
+		graph: newGraph,
 	}
 }
 

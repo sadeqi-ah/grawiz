@@ -10,9 +10,10 @@ import { useKeys } from '@hooks/useKeys'
 import NodeToolbox from '@components/graphEditor/NodeToolbox'
 import { ButtonState } from '@components/Button'
 import { useGraphEditorDispatch, useGraphEditorStore } from '@providers/graphEditor'
-import { getEdgeById, getNodeById, getNodeByPosition, getValidEdgeType } from '@utils/graph'
+// import { getEdgeById, getNodeById, getNodeByPosition, getValidEdgeType } from '@utils/graph'
 
 import styles from '@styles/GraphEditor.module.scss'
+import { FullEdge, Node } from '@utils/graph/types'
 
 export default function GraphEditor() {
 	const state = useGraphEditorStore()
@@ -78,7 +79,7 @@ export default function GraphEditor() {
 			dispatch({
 				type: 'SET_PREVIEW_EDGE',
 				payload: {
-					source: getNodeById(state.graph.nodes, nodeId),
+					source: state.graph.getNode(nodeId),
 				},
 			})
 		}
@@ -86,11 +87,9 @@ export default function GraphEditor() {
 
 	const drawEdge = (position: Point) => {
 		if (state.activeTool == 'add-edge' && state.previewEdge.source) {
-			const target = getNodeByPosition(state.graph.nodes, position)
-			const edgeType = getValidEdgeType(state.graph, state.previewEdge.source.id, target?.id)
-
+			const target = state.graph.getNode(position)
+			const edgeType = target && state.graph.validEdgeType(state.previewEdge.source.id, target.id)
 			const canDraw = target && target.id != state.previewEdge.source.id && edgeType
-
 			dispatch({
 				type: 'SET_PREVIEW_EDGE',
 				payload: {
@@ -103,16 +102,12 @@ export default function GraphEditor() {
 	}
 
 	const finishDrawingEdge = () => {
-		if (state.previewEdge.id) {
+		if (state.previewEdge.id && state.previewEdge.source && state.previewEdge.target) {
 			dispatch({
 				type: 'ADD_EDGE',
 				payload: {
-					newEdge: {
-						id: state.previewEdge.id,
-						source: state.previewEdge.source,
-						target: state.previewEdge.target,
-						type: state.previewEdge.type,
-					},
+					source: state.previewEdge.source.id,
+					target: state.previewEdge.target.id,
 				},
 			})
 		}
@@ -156,7 +151,7 @@ export default function GraphEditor() {
 
 	const handleNodeDrag = useCallback(
 		(translate: Point, id: string) => {
-			dispatch({ type: 'SET_NODE_TRANSLATE', payload: { nodeId: id, translate } })
+			dispatch({ type: 'UPDATE_NODE', payload: { id, data: { translate } } })
 		},
 		[dispatch]
 	)
@@ -165,12 +160,15 @@ export default function GraphEditor() {
 		(id: string) => {
 			dispatch({ type: 'ADD_SELECTED_ITEM', payload: id })
 		},
-		[getNodeById, dispatch]
+		[dispatch]
 	)
 
 	const handleEdgeDirection = useCallback(
 		(id: string, direction: ButtonState) => {
-			dispatch({ type: 'UPDATE_EDGE_DIRECTION', payload: { id, direction } })
+			let _direction = (direction as string[]).length == 2 ? 'both' : 'none'
+			if ((direction as string[]).length == 1) _direction = (direction as string[])[0]
+
+			dispatch({ type: 'UPDATE_EDGE', payload: { id, data: { direction: _direction } } })
 		},
 		[dispatch]
 	)
@@ -178,7 +176,7 @@ export default function GraphEditor() {
 	const handleEdgeType = useCallback(
 		(id: string, type: ButtonState) => {
 			if (typeof type === 'object' && type.length === 1)
-				dispatch({ type: 'UPDATE_EDGE_TYPE', payload: { id, type: type[0] } })
+				dispatch({ type: 'UPDATE_EDGE', payload: { id, data: { type: type[0] } } })
 		},
 		[dispatch]
 	)
@@ -186,8 +184,8 @@ export default function GraphEditor() {
 	const handleEdgeWeight = useCallback(
 		(id: string, weight?: string | number) =>
 			dispatch({
-				type: 'UPDATE_EDGE_WEIGHT',
-				payload: { id, weight: weight !== undefined ? Number(weight) : weight },
+				type: 'UPDATE_EDGE',
+				payload: { id, data: { weight: weight !== undefined ? Number(weight) : weight } },
 			}),
 		[dispatch]
 	)
@@ -195,8 +193,8 @@ export default function GraphEditor() {
 	const handleNodeColor = useCallback(
 		(id: string, color: string) => {
 			dispatch({
-				type: 'UPDATE_NODE_COLOR',
-				payload: { id, color },
+				type: 'UPDATE_NODE',
+				payload: { id, data: { color } },
 			})
 		},
 		[dispatch]
@@ -205,8 +203,8 @@ export default function GraphEditor() {
 	const handleNodeLabel = useCallback(
 		(id: string, label?: string | number) => {
 			dispatch({
-				type: 'UPDATE_NODE_LABEL',
-				payload: { id, label },
+				type: 'UPDATE_NODE',
+				payload: { id, data: { label } },
 			})
 		},
 		[dispatch]
@@ -241,7 +239,7 @@ export default function GraphEditor() {
 						</marker>
 					</defs>
 
-					<Edges edges={state.graph.edges} previewEdge={state.previewEdge} />
+					<Edges edges={state.graph.getFullEdges()} previewEdge={state.previewEdge} />
 
 					<Nodes
 						nodes={state.graph.nodes}
@@ -260,8 +258,12 @@ export default function GraphEditor() {
 					/>
 					<SelectedItems
 						items={{
-							nodes: state.selectedItems.nodes.map(id => getNodeById(state.graph.nodes, id)),
-							edges: state.selectedItems.edges.map(id => getEdgeById(state.graph.edges, id)),
+							nodes: state.selectedItems.nodes
+								.map(id => state.graph.getNode(id))
+								.filter((node): node is Node => !!node),
+							edges: state.selectedItems.edges
+								.map(id => state.graph.getFullEdge(id))
+								.filter((edge): edge is FullEdge => !!edge),
 						}}
 					/>
 				</svg>
@@ -270,7 +272,7 @@ export default function GraphEditor() {
 			<EdgeToolbox
 				edge={
 					state.selectedItems.nodes.length === 0 && state.selectedItems.edges.length === 1
-						? getEdgeById(state.graph.edges, state.selectedItems.edges[0])
+						? state.graph.getFullEdge(state.selectedItems.edges[0])
 						: undefined
 				}
 				onChangeDirection={handleEdgeDirection}
@@ -280,7 +282,7 @@ export default function GraphEditor() {
 			<NodeToolbox
 				node={
 					state.selectedItems.nodes.length === 1 && state.selectedItems.edges.length === 0
-						? getNodeById(state.graph.nodes, state.selectedItems.nodes[0])
+						? state.graph.getNode(state.selectedItems.nodes[0])
 						: undefined
 				}
 				onChangeNodeColor={handleNodeColor}

@@ -6,10 +6,10 @@ import { calcEdgePosition } from '@components/graph/Edge'
 import Toolbox from '@components/Toolbox'
 import isEqual from 'lodash/isEqual'
 import { ButtonState } from '@components/Button'
-import { Edge } from '@utils/graph/types'
+import { FullEdge } from '@utils/graph/types'
 
 export type EdgeToolboxProps = {
-	edge?: Edge
+	edge?: FullEdge
 	onChangeDirection?: (id: string, state: ButtonState) => void
 	onChangeEdgeType?: (id: string, state: ButtonState) => void
 	onChangeWeight?: (id: string, weight?: string | number) => void

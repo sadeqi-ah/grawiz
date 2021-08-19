@@ -3,12 +3,13 @@ import { Tool } from '@components/graphEditor/Menu'
 import Point from '@utils/shape/point'
 import { Action } from '../types'
 import reducer, { ActionType, defaultValue } from './reducer'
-import { Edge, Graph } from '@utils/graph/types'
+import { PreviewEdge } from '@utils/graph/types'
+import Graph from '@utils/graph'
 
 export type GraphEditorProps = {
 	activeTool: Tool
 	graph: Graph
-	previewEdge: Partial<Edge>
+	previewEdge: PreviewEdge
 	draggable: boolean
 	selectedItems: SelectedItems
 	selectionArea: {
