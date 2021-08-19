@@ -10,7 +10,6 @@ import { useKeys } from '@hooks/useKeys'
 import NodeToolbox from '@components/graphEditor/NodeToolbox'
 import { ButtonState } from '@components/Button'
 import { useGraphEditorDispatch, useGraphEditorStore } from '@providers/graphEditor'
-// import { getEdgeById, getNodeById, getNodeByPosition, getValidEdgeType } from '@utils/graph'
 
 import styles from '@styles/GraphEditor.module.scss'
 import { FullEdge, Node } from '@utils/graph/types'
