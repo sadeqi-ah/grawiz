@@ -1,16 +1,13 @@
 import '../styles/globals.scss'
-import { GraphEditorProvider } from '@providers/graphEditor'
-import { AlertProvider } from '@providers/alert'
 
 import type { AppProps } from 'next/app'
+import Providers from '@providers'
 
 function MyApp({ Component, pageProps }: AppProps) {
 	return (
-		<GraphEditorProvider>
-			<AlertProvider>
-				<Component {...pageProps} />
-			</AlertProvider>
-		</GraphEditorProvider>
+		<Providers>
+			<Component {...pageProps} />
+		</Providers>
 	)
 }
 export default MyApp

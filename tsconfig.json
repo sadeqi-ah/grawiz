@@ -22,7 +22,8 @@
 			"@styles/*": ["styles/*"],
 			"@icons/*": ["icons/*"],
 			"@icons": ["icons/index.tsx"],
-			"@constants": ["constants.ts"]
+			"@constants": ["constants.ts"],
+			"@providers": ["providers/index.tsx"]
 		}
 	},
 	"include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],
