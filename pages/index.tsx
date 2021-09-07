@@ -1,5 +1,5 @@
 import Head from 'next/head'
-import styles from '../styles/Home.module.scss'
+import styles from '../styles/GraphEditor.module.scss'
 import React, { useState } from 'react'
 import GraphEditorComponent from '@components/graphEditor'
 import Logo from '@components/Logo'
