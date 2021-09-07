@@ -23,35 +23,32 @@ export type ToolboxProps = {
 	children?: React.ReactNode
 }
 
-const Toolbox = memo(
-	({ children, width, height, position }) => {
-		const transitions = useTransition(position, {
-			from: { scale: 0, opacity: 0 },
-			enter: { scale: 1, opacity: 1 },
-			leave: { scale: 0, opacity: 0 },
-			config: { tension: 120, mass: 1, friction: 14, velocity: 0, precision: 0.01 },
-		})
+const Toolbox = memo(({ children, width, height, position }) => {
+	const transitions = useTransition(position, {
+		from: { scale: 0, opacity: 0 },
+		enter: { scale: 1, opacity: 1 },
+		leave: { scale: 0, opacity: 0 },
+		config: { tension: 120, mass: 1, friction: 14, velocity: 0, precision: 0.01 },
+	})
 
-		return transitions(
-			(style, pos) =>
-				pos && (
-					<animated.div
-						className={styles.container}
-						style={{
-							width,
-							height,
-							top: pos.y,
-							left: pos.x,
-							...style,
-						}}
-					>
-						{children}
-					</animated.div>
-				)
-		)
-	},
-	({ children: _cp, ...prevProps }, { children: _cn, ...nextProps }) => isEqual(prevProps, nextProps)
-) as IToolboxComposition
+	return transitions(
+		(style, pos) =>
+			pos && (
+				<animated.div
+					className={styles.container}
+					style={{
+						width,
+						height,
+						top: pos.y,
+						left: pos.x,
+						...style,
+					}}
+				>
+					{children}
+				</animated.div>
+			)
+	)
+}, isEqual) as IToolboxComposition
 
 Toolbox.Button = Button
 Toolbox.Input = Input
