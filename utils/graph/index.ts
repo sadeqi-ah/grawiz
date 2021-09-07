@@ -1,6 +1,7 @@
 import { NODE_RADIUS } from '@constants'
 import { between } from '@utils/helper'
 import Point from '@utils/shape/point'
+import { Concrete } from '@utils/types'
 import { Edge, EdgeType, FullEdge, Node } from './types'
 
 class Graph {
@@ -51,13 +52,16 @@ class Graph {
 		return this.edges.find(edge => edge.id == id)
 	}
 
-	getEdges(source: string, target: string): Edge[] | undefined
-	getEdges(node: string): Edge[] | undefined
+	getEdges(source: string, target: string): Edge[]
+	getEdges(node: string): Edge[]
 	getEdges(source: string, target?: string) {
-		if (!target) return this.edges.filter(edge => edge.source == source || edge.target == source)
+		if (!target) return this.edges.filter(edge => edge.source == source || edge.target == source) || []
 
-		return this.edges.filter(
-			edge => (edge.source == source && edge.target == target) || (edge.source == target && edge.target == source)
+		return (
+			this.edges.filter(
+				edge =>
+					(edge.source == source && edge.target == target) || (edge.source == target && edge.target == source)
+			) || []
 		)
 	}
 
@@ -130,6 +134,75 @@ class Graph {
 	getFullEdges() {
 		const fullEdges = this.edges.map(edge => this.getFullEdge(edge.id))
 		return fullEdges.filter((edge): edge is FullEdge => !!edge)
+	}
+
+	normalizeEdge(edge: Edge): Concrete<Edge>[] {
+		const result: Concrete<Edge>[] = []
+
+		result.push({
+			...edge,
+			direction: 'normal',
+			weight: edge.weight || 1,
+		})
+
+		if (edge.direction !== 'normal') {
+			result.push({
+				...edge,
+				source: edge.target,
+				target: edge.source,
+				direction: 'normal',
+				weight: edge.weight || 1,
+			})
+		}
+
+		return result
+	}
+
+	normalizeEdges(): Concrete<Edge>[] {
+		const visited: string[][] = []
+		let result: Concrete<Edge>[] = []
+		this.edges.forEach(edge => {
+			if (
+				visited.some(item => !(item.includes(edge.source) && item.includes(edge.target))) ||
+				visited.length == 0
+			) {
+				const edges = this.getEdges(edge.source, edge.target)
+				if (edges.length == 1) {
+					result = [...result, ...this.normalizeEdge(edges[0])]
+				} else if (edges.length == 2) {
+					if (edges[0].direction !== 'normal') {
+						result = [...result, ...this.normalizeEdge(edges[0])]
+					} else if (edges[1].direction !== 'normal') {
+						result = [...result, ...this.normalizeEdge(edges[1])]
+					} else {
+						if (edges[0].source !== edges[1].source) {
+							result = [...result, ...this.normalizeEdge(edges[0]), ...this.normalizeEdge(edges[1])]
+						} else {
+							result = [...result, ...this.normalizeEdge(edges[0])]
+						}
+					}
+				}
+				visited.push([edge.source, edge.target])
+			}
+		})
+		return result
+	}
+
+	convertToMatrix() {
+		let matrix = new Array<Array<number>>(this.nodes.length)
+
+		this.nodes.forEach((node, index) => {
+			matrix[index] = new Array<number>(this.nodes.length)
+			matrix[index].fill(0)
+		})
+
+		this.edges.forEach(edge => {
+			matrix[Number(edge.source.split('_')[1])][Number(edge.target.split('_')[1])] = edge.weight || 1
+			if (edge.direction != 'normal')
+				matrix[Number(edge.target.split('_')[1])][Number(edge.source.split('_')[1])] = edge.weight || 1
+		})
+
+		return matrix
 	}
 
 	clone() {
