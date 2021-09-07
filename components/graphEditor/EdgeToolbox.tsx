@@ -1,21 +1,23 @@
-import React, { memo } from 'react'
+import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Line from '@utils/shape/line'
 import Point from '@utils/shape/point'
 import Quadbezier from '@utils/shape/quadbezier'
 import { calcEdgePosition } from '@components/graph/Edge'
 import Toolbox from '@components/Toolbox'
 import isEqual from 'lodash/isEqual'
-import { ButtonState } from '@components/Button'
-import { FullEdge } from '@utils/graph/types'
+import Button, { ButtonState } from '@components/Button'
+import { EdgeDirection, FullEdge } from '@utils/graph/types'
+import { useGraphEditorDispatch } from '@providers/graphEditor'
+import Input from '@components/Input'
+import { useUpdateEffect } from '@hooks/useUpdateEffect'
 
 export type EdgeToolboxProps = {
 	edge?: FullEdge
-	onChangeDirection?: (id: string, state: ButtonState) => void
-	onChangeEdgeType?: (id: string, state: ButtonState) => void
-	onChangeWeight?: (id: string, weight?: string | number) => void
 }
 
-const EdgeToolbox: React.FC<EdgeToolboxProps> = ({ edge, onChangeDirection, onChangeEdgeType, onChangeWeight }) => {
+const EdgeToolbox: React.FC<EdgeToolboxProps> = ({ edge }) => {
+	const dispatch = useGraphEditorDispatch()
+
 	const calcEdgeToolboxPosition = (width: number, height: number) => {
 		if (!edge) return
 		const { first, control, last } = calcEdgePosition(
@@ -47,31 +49,73 @@ const EdgeToolbox: React.FC<EdgeToolboxProps> = ({ edge, onChangeDirection, onCh
 		return _position
 	}
 
-	const position = calcEdgeToolboxPosition(240, 141)
+	const position = useMemo(() => calcEdgeToolboxPosition(240, 141), [edge?.id])
+
+	const handleUpdateDirection = (id: string, direction: ButtonState) => {
+		if (!edge) return
+		let _direction: EdgeDirection = (direction as string[]).length === 2 ? 'both' : 'none'
+		let reverse = false
+
+		if ((direction as string[]).length == 1) {
+			_direction = 'normal'
+			if (
+				edge.source.position.clone().add(edge.source.translate).x <=
+				edge.target.position.clone().add(edge.target.translate).x
+			) {
+				reverse = (direction as string[])[0] === 'start'
+			} else {
+				reverse = (direction as string[])[0] === 'end'
+			}
+		}
+
+		dispatch({
+			type: 'UPDATE_EDGE',
+			payload: {
+				id,
+				data: { ...(reverse && { source: edge.target.id, target: edge.source.id }), direction: _direction },
+			},
+		})
+	}
+
+	const handleUpdateEdgeType = (id: string, type: ButtonState) => {
+		if (typeof type === 'object' && type.length === 1)
+			dispatch({ type: 'UPDATE_EDGE', payload: { id, data: { type: type[0] } } })
+	}
+
+	const handleChangeEdgeWeight = (id: string, weight?: string | number) =>
+		dispatch({
+			type: 'UPDATE_EDGE',
+			payload: { id, data: { weight: weight !== undefined ? Number(weight) : weight } },
+		})
 
 	const activeDirection = () => {
 		if (!edge || (edge && edge.direction === 'none')) return []
 		if (edge.direction === 'both') return ['start', 'end']
-		return [edge.direction]
+		if (
+			edge.source.position.clone().add(edge.source.translate).x <=
+			edge.target.position.clone().add(edge.target.translate).x
+		)
+			return ['end']
+		return ['start']
 	}
 
 	return (
 		<Toolbox width={240} height={141} position={position}>
 			<Toolbox.Row>
 				<Toolbox.Group>
-					<Toolbox.Button
+					<Button
 						id={edge?.id}
 						type='checkbox'
 						options={[
 							{ id: 'start', icon: 'ArrowLeft' },
 							{ id: 'end', icon: 'ArrowRight' },
 						]}
-						onUpdate={onChangeDirection}
+						onUpdate={handleUpdateDirection}
 						status={activeDirection()}
 					/>
 				</Toolbox.Group>
 				<Toolbox.Group>
-					<Toolbox.Button
+					<Button
 						id={edge?.id}
 						type='radio'
 						options={[
@@ -79,7 +123,7 @@ const EdgeToolbox: React.FC<EdgeToolboxProps> = ({ edge, onChangeDirection, onCh
 							{ id: 'curve', icon: 'UpwardCurve' },
 							{ id: 'reverse-curve', icon: 'DownwardCurve' },
 						]}
-						onUpdate={onChangeEdgeType}
+						onUpdate={handleUpdateEdgeType}
 						status={edge?.type && [edge?.type]}
 					/>
 				</Toolbox.Group>
@@ -87,12 +131,12 @@ const EdgeToolbox: React.FC<EdgeToolboxProps> = ({ edge, onChangeDirection, onCh
 			<Toolbox.Line />
 			<Toolbox.Row>
 				<Toolbox.Group>
-					<Toolbox.Input
+					<Input
 						id={edge?.id}
 						type={'number'}
 						label='weight'
 						value={edge?.weight}
-						onChange={onChangeWeight}
+						onChange={handleChangeEdgeWeight}
 					/>
 				</Toolbox.Group>
 			</Toolbox.Row>
@@ -100,4 +144,4 @@ const EdgeToolbox: React.FC<EdgeToolboxProps> = ({ edge, onChangeDirection, onCh
 	)
 }
 
-export default memo(EdgeToolbox, (prev, next) => isEqual(prev.edge?.id, next.edge?.id))
+export default memo(EdgeToolbox, isEqual)

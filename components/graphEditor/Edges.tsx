@@ -16,6 +16,7 @@ const Edges = ({ edges, previewEdge }: EdgesProps) => {
 					source={previewEdge.source.position.clone().add(previewEdge.source.translate)}
 					target={previewEdge.target.position.clone().add(previewEdge.target.translate)}
 					type={previewEdge.type}
+					direction={previewEdge.direction}
 					linked={previewEdge.target.id !== undefined}
 				/>
 			)}

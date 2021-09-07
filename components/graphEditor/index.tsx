@@ -8,7 +8,6 @@ import Nodes from './Nodes'
 import Edges from './Edges'
 import { useKeys } from '@hooks/useKeys'
 import NodeToolbox from '@components/graphEditor/NodeToolbox'
-import { ButtonState } from '@components/Button'
 import { useGraphEditorDispatch, useGraphEditorStore } from '@providers/graphEditor'
 
 import styles from '@styles/GraphEditor.module.scss'
@@ -79,6 +78,7 @@ export default function GraphEditor() {
 				type: 'SET_PREVIEW_EDGE',
 				payload: {
 					source: state.graph.getNode(nodeId),
+					direction: 'normal',
 				},
 			})
 		}
@@ -162,33 +162,6 @@ export default function GraphEditor() {
 		[dispatch]
 	)
 
-	const handleEdgeDirection = useCallback(
-		(id: string, direction: ButtonState) => {
-			let _direction = (direction as string[]).length == 2 ? 'both' : 'none'
-			if ((direction as string[]).length == 1) _direction = (direction as string[])[0]
-
-			dispatch({ type: 'UPDATE_EDGE', payload: { id, data: { direction: _direction } } })
-		},
-		[dispatch]
-	)
-
-	const handleEdgeType = useCallback(
-		(id: string, type: ButtonState) => {
-			if (typeof type === 'object' && type.length === 1)
-				dispatch({ type: 'UPDATE_EDGE', payload: { id, data: { type: type[0] } } })
-		},
-		[dispatch]
-	)
-
-	const handleEdgeWeight = useCallback(
-		(id: string, weight?: string | number) =>
-			dispatch({
-				type: 'UPDATE_EDGE',
-				payload: { id, data: { weight: weight !== undefined ? Number(weight) : weight } },
-			}),
-		[dispatch]
-	)
-
 	const handleNodeColor = useCallback(
 		(id: string, color: string) => {
 			dispatch({
@@ -210,7 +183,7 @@ export default function GraphEditor() {
 	)
 
 	return (
-		<div className={styles.container}>
+		<>
 			<div className={styles.board}>
 				<svg {...handleDrag()} onClick={handleClick}>
 					<defs>
@@ -274,9 +247,6 @@ export default function GraphEditor() {
 						? state.graph.getFullEdge(state.selectedItems.edges[0])
 						: undefined
 				}
-				onChangeDirection={handleEdgeDirection}
-				onChangeEdgeType={handleEdgeType}
-				onChangeWeight={handleEdgeWeight}
 			/>
 			<NodeToolbox
 				node={
@@ -287,6 +257,6 @@ export default function GraphEditor() {
 				onChangeNodeColor={handleNodeColor}
 				onChangeNodeLabel={handleNodeLabel}
 			/>
-		</div>
+		</>
 	)
 }
