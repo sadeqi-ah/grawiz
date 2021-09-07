@@ -77,48 +77,44 @@ function calcWeightPosition(first: Point, last: Point, control?: Point) {
 
 const Edge = React.forwardRef<SVGLineElement, EdgeProps>(
 	({ source, target, linked, weight, direction = 'none', type = 'straight' }, ref) => {
-		function createEdge() {
-			const { first, last, control } = calcEdgePosition(source, target, type, linked)
-			const weightPos = calcWeightPosition(first, last, control)
+		const { first, last, control } = calcEdgePosition(source, target, type, linked)
+		const weightPos = calcWeightPosition(first, last, control)
 
-			const markerProps = {
-				...(direction === 'normal' && { markerEnd: 'url(#arrow_right)' }),
-				...(direction === 'both' && { markerStart: 'url(#arrow_left)', markerEnd: 'url(#arrow_right)' }),
-			}
-
-			return (
-				<>
-					{type === 'straight' ? (
-						<line
-							ref={ref}
-							x1={first.x}
-							y1={first.y}
-							x2={last.x}
-							y2={last.y}
-							{...markerProps}
-							stroke='#343a40'
-							strokeWidth='2'
-						/>
-					) : (
-						<path
-							d={`M ${first.x} ${first.y} Q ${control?.x} ${control?.y} ${last.x} ${last.y}`}
-							fill='transparent'
-							{...markerProps}
-							stroke='#343a40'
-							strokeWidth='2'
-						/>
-					)}
-
-					{weight && (
-						<text x={weightPos.x} y={weightPos.y} dominantBaseline='middle' textAnchor='middle' fill='#000'>
-							{weight}
-						</text>
-					)}
-				</>
-			)
+		const markerProps = {
+			...(direction === 'normal' && { markerEnd: 'url(#arrow_right)' }),
+			...(direction === 'both' && { markerStart: 'url(#arrow_left)', markerEnd: 'url(#arrow_right)' }),
 		}
 
-		return createEdge()
+		return (
+			<>
+				{type === 'straight' ? (
+					<line
+						ref={ref}
+						x1={first.x}
+						y1={first.y}
+						x2={last.x}
+						y2={last.y}
+						{...markerProps}
+						stroke='#343a40'
+						strokeWidth='2'
+					/>
+				) : (
+					<path
+						d={`M ${first.x} ${first.y} Q ${control?.x} ${control?.y} ${last.x} ${last.y}`}
+						fill='transparent'
+						{...markerProps}
+						stroke='#343a40'
+						strokeWidth='2'
+					/>
+				)}
+
+				{weight && (
+					<text x={weightPos.x} y={weightPos.y} dominantBaseline='middle' textAnchor='middle' fill='#000'>
+						{weight}
+					</text>
+				)}
+			</>
+		)
 	}
 )
 
