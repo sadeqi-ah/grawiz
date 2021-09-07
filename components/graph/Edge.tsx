@@ -4,9 +4,7 @@ import { NODE_RADIUS } from '@constants'
 import isEqual from 'lodash/isEqual'
 import Quadbezier from '@utils/shape/quadbezier'
 import Line from '@utils/shape/line'
-
-export type EdgeType = 'straight' | 'curve' | 'reverse-curve'
-export type EdgeDirection = 'none' | 'start' | 'end' | 'both'
+import { EdgeDirection, EdgeType } from '@utils/graph/types'
 
 export type EdgeProps = {
 	linked: boolean
@@ -84,8 +82,7 @@ const Edge = React.forwardRef<SVGLineElement, EdgeProps>(
 			const weightPos = calcWeightPosition(first, last, control)
 
 			const markerProps = {
-				...(direction === 'end' && { markerEnd: 'url(#arrow_right)' }),
-				...(direction === 'start' && { markerStart: 'url(#arrow_left)' }),
+				...(direction === 'normal' && { markerEnd: 'url(#arrow_right)' }),
 				...(direction === 'both' && { markerStart: 'url(#arrow_left)', markerEnd: 'url(#arrow_right)' }),
 			}
 

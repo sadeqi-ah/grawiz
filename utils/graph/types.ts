@@ -10,7 +10,7 @@ export type Node = {
 
 export type EdgeType = 'straight' | 'curve' | 'reverse-curve'
 
-export type EdgeDirection = 'none' | 'start' | 'end' | 'both'
+export type EdgeDirection = 'none' | 'normal' | 'both'
 
 export type Edge = {
 	id: string

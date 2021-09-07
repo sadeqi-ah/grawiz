@@ -3,8 +3,6 @@ import { between } from '@utils/helper'
 import Point from '@utils/shape/point'
 import { Edge, EdgeType, FullEdge, Node } from './types'
 
-const edgeTypesArray: EdgeType[] = ['straight', 'curve', 'reverse-curve']
-
 class Graph {
 	nodes: Node[] = []
 	edges: Edge[] = []
@@ -28,7 +26,7 @@ class Graph {
 			source,
 			target,
 			type: edgeType,
-			direction: 'none',
+			direction: 'normal',
 		})
 
 		return this
@@ -63,24 +61,25 @@ class Graph {
 		)
 	}
 
-	canDrawingEdge(source: string, target: string): boolean
-	canDrawingEdge(edges: Edge[]): boolean
-	canDrawingEdge(...args: any): boolean {
-		if (typeof args[0] === 'string') {
-			const edges = this.getEdges(args[0], args[1])
-			if (edges) return edges.length < 3
-			return false
-		}
-		return args[0].length < 3
+	canDrawingEdge(source: string, target: string): boolean {
+		let edges = this.getEdges(source, target)
+		if (!edges) return false
+
+		if (edges.length == 0) return true
+		else if (edges.length == 1) return edges[0].direction == 'normal'
+		return false
 	}
 
-	validEdgeType(source: string, target: string) {
+	validEdgeType(source: string, target: string): EdgeType | undefined {
 		const edges = this.getEdges(source, target)
-		if (!edges || !this.canDrawingEdge(edges)) return
+		if (!edges || !this.canDrawingEdge(source, target)) return
 
 		const edgeTypes = edges.map(edge => edge.type)
-		for (const type of edgeTypesArray) {
-			if (!edgeTypes.includes(type)) return type
+		if (edgeTypes.length == 0) return 'straight'
+		else if (edgeTypes.length == 1) {
+			if (edgeTypes[0] === 'straight') return 'curve'
+			else if (edgeTypes[0] === 'curve') return 'reverse-curve'
+			else return 'curve'
 		}
 	}
 
