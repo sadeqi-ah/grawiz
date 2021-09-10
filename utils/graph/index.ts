@@ -188,8 +188,24 @@ class Graph {
 		return result
 	}
 
+	convertToList() {
+		const edges = this.normalizeEdges()
+		const nodes = this.nodes.map(node => node.id)
+		let list = new Array<Array<number>>(edges.length)
+
+		nodes.forEach((node, index) => {
+			list.push([index])
+		})
+		edges.forEach(edge => {
+			list.push([nodes.indexOf(edge.source), nodes.indexOf(edge.target), edge.weight])
+		})
+
+		return list
+	}
+
 	convertToMatrix() {
 		let matrix = new Array<Array<number>>(this.nodes.length)
+		const nodes = this.nodes.map(node => node.id)
 
 		this.nodes.forEach((node, index) => {
 			matrix[index] = new Array<number>(this.nodes.length)
@@ -197,9 +213,9 @@ class Graph {
 		})
 
 		this.edges.forEach(edge => {
-			matrix[Number(edge.source.split('_')[1])][Number(edge.target.split('_')[1])] = edge.weight || 1
+			matrix[nodes.indexOf(edge.source)][nodes.indexOf(edge.target)] = edge.weight || 1
 			if (edge.direction != 'normal')
-				matrix[Number(edge.target.split('_')[1])][Number(edge.source.split('_')[1])] = edge.weight || 1
+				matrix[nodes.indexOf(edge.target)][nodes.indexOf(edge.source)] = edge.weight || 1
 		})
 
 		return matrix

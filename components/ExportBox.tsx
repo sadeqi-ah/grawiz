@@ -33,16 +33,7 @@ function ExportBox({ show }: ExportBoxProps) {
 					<p className={styles.title}>adjacency matrix :</p>
 					<Code code={state.graph.convertToMatrix().map(line => line.join(' '))} />
 					<p className={styles.title}>adjacency list :</p>
-					<Code
-						code={[
-							...state.graph.nodes.map(node => node.id.split('_')[1]),
-							...state.graph
-								.normalizeEdges()
-								.map(
-									edge => `${edge.source.split('_')[1]} ${edge.target.split('_')[1]} ${edge.weight}`
-								),
-						]}
-					/>
+					<Code code={state.graph.convertToList().map(line => line.join(' '))} />
 				</animated.div>
 			)
 	)
